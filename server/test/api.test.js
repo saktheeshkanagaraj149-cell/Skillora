@@ -9,6 +9,7 @@ import { User, Domain } from '../src/models.js';
 
 let mongo, server, base;
 process.env.JWT_SECRET = 'test-secret';
+process.env.NODE_ENV = 'test';
 delete process.env.GEMINI_API_KEY; // force template generator
 
 const call = async (path, { method = 'GET', body, token } = {}) => {

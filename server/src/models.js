@@ -19,7 +19,7 @@ const domainSchema = new Schema(
     name: { type: String, required: true, unique: true, trim: true },
     slug: { type: String, required: true, unique: true },
     icon: { type: String, default: '📚' },
-    category: { type: String, default: 'Other' },
+    category: { type: String, default: 'Other', index: true },
     description: { type: String, default: '' },
   },
   { timestamps: true },
@@ -53,7 +53,7 @@ const stepSchema = new Schema({
 
 const pathSchema = new Schema(
   {
-    domain: { type: Schema.Types.ObjectId, ref: 'Domain', required: true, index: true },
+    domain: { type: Schema.Types.ObjectId, ref: 'Domain', required: true }, // indexed via { domain, status } below
     title: { type: String, required: true, trim: true },
     level: { type: String, enum: ['beginner', 'intermediate', 'advanced'], default: 'beginner' },
     description: { type: String, default: '' },
@@ -65,6 +65,9 @@ const pathSchema = new Schema(
   { timestamps: true },
 );
 
+// Domain page lists published paths of one domain
+pathSchema.index({ domain: 1, status: 1 });
+
 const progressSchema = new Schema(
   {
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -75,7 +78,8 @@ const progressSchema = new Schema(
   },
   { timestamps: true },
 );
-progressSchema.index({ user: 1, path: 1 }, { unique: true });
+progressSchema.index({ user: 1, path: 1 }, { unique: true }); // one progress doc per learner per path
+progressSchema.index({ user: 1, updatedAt: -1 }); // dashboard: my paths, most recent first
 
 export const User = model('User', userSchema);
 export const Domain = model('Domain', domainSchema);

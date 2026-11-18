@@ -23,9 +23,12 @@ Free content for any skill is already online, but it is scattered, unordered and
 
 ---
 
+📘 **Docs:** [Database structure](docs/DATABASE.md) · [Deployment guide](docs/DEPLOY.md)
+
 ## Tech stack
 - **Client:** React 18 + Vite + React Router
-- **Server:** Node.js + Express + MongoDB (Mongoose), JWT auth, bcrypt
+- **Server:** Node.js + Express + MongoDB Atlas (Mongoose), JWT auth, bcrypt, helmet, rate limiting
+- **Hosting:** Render (API) + Vercel (web) + MongoDB Atlas (DB)
 - **AI:** Google Gemini (free tier) drafts paths and quizzes. It returns *search queries*, not URLs, so we never ship made-up links. Admins swap in hand-picked resources before publishing.
 
 ## Run it locally

@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import { User, Domain, Path, Progress } from './models.js';
@@ -21,13 +23,37 @@ function learnerView(path) {
 // Wrap async handlers so thrown errors reach the error middleware
 const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
+// CLIENT_ORIGIN may be a comma-separated list, e.g. "https://skillora.vercel.app,http://localhost:5173"
+const allowedOrigins = () =>
+  (process.env.CLIENT_ORIGIN || 'http://localhost:5173').split(',').map((o) => o.trim().replace(/\/$/, '')).filter(Boolean);
+
+const limiter = (windowMin, max, message) =>
+  rateLimit({
+    windowMs: windowMin * 60 * 1000,
+    limit: max,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { error: message },
+    skip: () => process.env.NODE_ENV === 'test',
+  });
+
 export function createApp() {
   const app = express();
-  app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173' }));
+  app.set('trust proxy', 1); // Render/Vercel sit behind one proxy: needed for correct client IPs in rate limiting
+  app.disable('x-powered-by');
+  app.use(helmet());
+  const origins = allowedOrigins();
+  app.use(cors({ origin: (origin, cb) => cb(null, !origin || origins.includes(origin)) }));
   app.use(express.json({ limit: '1mb' }));
+  app.use('/api', limiter(15, 600, 'Too many requests, slow down a little'));
+  app.use(['/api/auth/login', '/api/auth/register'], limiter(15, 20, 'Too many attempts, try again in 15 minutes'));
+  app.use('/api/admin/paths/generate', limiter(60, 30, 'AI generation limit reached, try again later'));
   app.use(optionalAuth);
 
-  app.get('/api/health', (_req, res) => res.json({ ok: true }));
+  app.get('/api/health', async (_req, res) => {
+    const dbUp = mongoose.connection.readyState === 1;
+    res.status(dbUp ? 200 : 503).json({ ok: dbUp, db: dbUp ? 'up' : 'down' });
+  });
 
   // ---------- Auth ----------
   app.post('/api/auth/register', ah(async (req, res) => {

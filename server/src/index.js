@@ -4,6 +4,14 @@ import { createApp } from './app.js';
 
 const port = Number(process.env.PORT) || 5000;
 
+if (process.env.NODE_ENV === 'production') {
+  const missing = ['MONGO_URI', 'JWT_SECRET', 'CLIENT_ORIGIN'].filter((k) => !process.env[k]);
+  if (missing.length) {
+    console.error('[config] missing required env vars: ' + missing.join(', '));
+    process.exit(1);
+  }
+}
+
 await connectDB();
 const server = createApp().listen(port, () => console.log(`[api] http://localhost:${port}`));
 
