@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth.jsx';
+import { Award, Brain, Footprints, HeartHandshake, Sprout } from 'lucide-react';
 
 function AuthShell({ title, children }) {
   return (
     <div className="auth">
       <aside className="auth-art">
-        <span className="brand" style={{ color: '#fff' }}><span className="brand-mark">🌱</span> Skillora</span>
+        <span className="brand" style={{ color: '#fff' }}><span className="brand-mark"><Sprout size={18} /></span> Skillora</span>
         <div>
           <h2>{title}</h2>
           <ul>
-            <li>✅ Step-by-step paths for 20+ skills</li>
-            <li>🧠 Quizzes that prove you learned it</li>
-            <li>🏅 Badges for every path you finish</li>
-            <li>💸 Free forever for learners</li>
+            <li><Footprints size={20} /> Step-by-step paths for 20+ skills</li>
+            <li><Brain size={20} /> Quizzes that prove you learned it</li>
+            <li><Award size={20} /> Badges for every path you finish</li>
+            <li><HeartHandshake size={20} /> Free forever for learners</li>
           </ul>
         </div>
         <p className="small" style={{ opacity: 0.7, margin: 0 }}>Learn any skill, in the right order.</p>

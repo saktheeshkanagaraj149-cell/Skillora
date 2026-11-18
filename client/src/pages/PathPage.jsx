@@ -2,9 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { useAuth } from '../auth.jsx';
+import { DomainIcon } from '../icons.jsx';
+import { ArrowLeft, Award, Brain, Check, ChevronDown, ExternalLink, FileText, Frown, GraduationCap, Hammer, Link2, PartyPopper, Play, Search } from 'lucide-react';
 
-const RESOURCE_ICON = { video: '▶️', article: '📄', course: '🎓', practice: '🛠️', search: '🔎' };
-const resourceIcon = (r) => (r.type === 'search' && /youtube\.com/.test(r.url) ? '▶️' : RESOURCE_ICON[r.type] || '🔗');
+const RESOURCE_ICON = { video: Play, article: FileText, course: GraduationCap, practice: Hammer, search: Search };
+function ResourceIcon({ r }) {
+  const Icon = r.type === 'search' && /youtube\.com/.test(r.url) ? Play : RESOURCE_ICON[r.type] || Link2;
+  return <Icon size={16} aria-hidden />;
+}
 
 function Quiz({ pathId, step, done, onResult }) {
   const { user } = useAuth();
@@ -34,7 +39,7 @@ function Quiz({ pathId, step, done, onResult }) {
       <div className="quiz">
         <p style={{ margin: '0 0 0.8rem' }}>Finished the resources above?</p>
         <button className="btn" disabled={busy || done} onClick={submit}>
-          {done ? '✓ Completed' : user ? 'Mark step as done' : 'Log in to track progress'}
+          {done ? <><Check size={16} /> Completed</> : user ? 'Mark step as done' : 'Log in to track progress'}
         </button>
         {error && <p className="error">{error}</p>}
       </div>
@@ -43,7 +48,7 @@ function Quiz({ pathId, step, done, onResult }) {
 
   return (
     <div className="quiz">
-      <h4>🧠 Quick check · {step.quiz.length} questions · pass mark 60%</h4>
+      <h4 className="with-icon"><Brain size={16} /> Quick check · {step.quiz.length} questions · pass mark 60%</h4>
       {step.quiz.map((q, qi) => (
         <fieldset key={qi}>
           <legend>{qi + 1}. {q.question}</legend>
@@ -72,7 +77,7 @@ function Quiz({ pathId, step, done, onResult }) {
       </button>
       {result && (
         <div className={`result ${result.passed ? 'pass' : 'fail'}`}>
-          {result.passed ? `🎉 Passed with ${result.score}%! Step complete.` : `${result.score}%. You need ${result.passMark}%. Review the step and try again.`}
+          {result.passed ? <><PartyPopper size={18} /> Passed with {result.score}%! Step complete.</> : `${result.score}%. You need ${result.passMark}%. Review the step and try again.`}
         </div>
       )}
       {error && <p className="error">{error}</p>}
@@ -99,7 +104,7 @@ export default function PathPage() {
       .catch((e) => setError(e.message));
   }, [id]);
 
-  if (error) return <div className="card empty"><div className="big">😕</div><p>{error}</p><Link to="/">← Back to all skills</Link></div>;
+  if (error) return <div className="card empty"><Frown className="big-icon" size={44} aria-hidden /><p>{error}</p><Link to="/">Back to all skills</Link></div>;
   if (!data) return <div className="skeleton" style={{ minHeight: 300, marginTop: '1rem' }} />;
 
   const { path, progress } = data;
@@ -126,7 +131,7 @@ export default function PathPage() {
 
   return (
     <>
-      <Link to={`/d/${path.domain.slug}`} className="back">← {path.domain.icon} {path.domain.name}</Link>
+      <Link to={`/d/${path.domain.slug}`} className="back"><ArrowLeft size={16} /> <DomainIcon slug={path.domain.slug} size={16} /> {path.domain.name}</Link>
       <div className="path-layout" style={{ marginTop: '0.8rem' }}>
         <div>
           <span className={`pill level-${path.level}`}>{path.level}</span>
@@ -135,7 +140,7 @@ export default function PathPage() {
 
           {finished && (
             <div className="badge-banner">
-              <span className="medal">🏅</span>
+              <span className="medal"><Award size={30} /></span>
               <div><strong>Badge earned!</strong><div className="muted small">You completed {path.title}. It's on your dashboard.</div></div>
             </div>
           )}
@@ -146,12 +151,12 @@ export default function PathPage() {
               const isOpen = open === i;
               return (
                 <li key={s._id} id={`step-${i}`} className={`${done ? 'done' : ''} ${i === nextIndex ? 'current' : ''}`}>
-                  <span className="num">{done ? '✓' : i + 1}</span>
+                  <span className="num">{done ? <Check size={18} strokeWidth={3} /> : i + 1}</span>
                   <div className="card step">
                     <button className="step-head" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : i)}>
                       <span className="grow">{s.title}</span>
                       <span className="small muted">~{s.estimatedHours}h</span>
-                      <span className="chev">▾</span>
+                      <ChevronDown className="chev" size={18} aria-hidden />
                     </button>
                     {isOpen && (
                       <div className="step-body">
@@ -161,9 +166,9 @@ export default function PathPage() {
                           {s.resources.map((r, ri) => (
                             <li key={ri}>
                               <a href={r.url} target="_blank" rel="noopener noreferrer">
-                                <span className="r-icon">{resourceIcon(r)}</span>
+                                <span className="r-icon"><ResourceIcon r={r} /></span>
                                 <span>{r.title}</span>
-                                <span className="ext">↗</span>
+                                <ExternalLink className="ext" size={15} aria-hidden />
                               </a>
                             </li>
                           ))}
@@ -194,7 +199,7 @@ export default function PathPage() {
                   {doneIds.size ? 'Continue' : 'Start'}: step {nextIndex + 1}
                 </button>
               ) : (
-                <Link to="/dashboard" className="btn secondary" style={{ width: '100%' }}>🏅 View my badges</Link>
+                <Link to="/dashboard" className="btn secondary" style={{ width: '100%' }}><Award size={17} /> View my badges</Link>
               )}
             </div>
           </div>

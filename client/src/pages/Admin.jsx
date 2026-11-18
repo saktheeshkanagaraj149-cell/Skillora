@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
+import { DomainIcon } from '../icons.jsx';
+import { Plus, Sparkles } from 'lucide-react';
 
 const resourcesToText = (rs) => rs.map((r) => `${r.title} | ${r.url}`).join('\n');
 const textToResources = (t) =>
@@ -36,12 +38,12 @@ function Generator({ domains, onCreated }) {
 
   return (
     <form className="card form wide" onSubmit={submit}>
-      <h3>✨ Generate a path with AI</h3>
+      <h3 className="with-icon"><Sparkles size={18} /> Generate a path with AI</h3>
       <div className="row">
         <label>Domain
           <select required value={form.domainId} onChange={set('domainId')}>
             <option value="">Choose…</option>
-            {domains.map((d) => <option key={d._id} value={d._id}>{d.icon} {d.name}</option>)}
+            {domains.map((d) => <option key={d._id} value={d._id}>{d.name}</option>)}
           </select>
         </label>
         <label className="grow">Topic<input required placeholder="e.g. Arduino for absolute beginners" value={form.topic} onChange={set('topic')} /></label>
@@ -75,7 +77,7 @@ function NewDomain({ onCreated }) {
   };
   return (
     <form className="card form wide" onSubmit={submit}>
-      <h3>➕ Add a domain</h3>
+      <h3 className="with-icon"><Plus size={18} /> Add a domain</h3>
       <div className="row">
         <label style={{ width: 80 }}>Icon<input value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} /></label>
         <label className="grow">Name<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
@@ -243,7 +245,7 @@ export default function Admin() {
           {paths.map((p) => (
             <tr key={p._id}>
               <td>{p.title}</td>
-              <td>{p.domain?.icon} {p.domain?.name}</td>
+              <td><span className="with-icon"><DomainIcon slug={p.domain?.slug} size={16} /> {p.domain?.name}</span></td>
               <td>{p.level}</td>
               <td>{p.steps.length}</td>
               <td><span className={`pill ${p.status}`}>{p.status}</span></td>

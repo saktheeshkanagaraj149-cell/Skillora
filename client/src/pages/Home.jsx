@@ -2,14 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { useAuth } from '../auth.jsx';
-import { CATEGORY_ORDER, catEmoji, catHue } from '../theme.js';
+import { CATEGORY_ORDER, catHue } from '../theme.js';
+import { CategoryIcon, DomainIcon } from '../icons.jsx';
+import { ArrowRight, Search, SearchX, Sprout } from 'lucide-react';
 
 const SUGGESTIONS = ['Python', 'Arduino', 'Photography', 'Spoken English', 'Aptitude'];
 
 function DomainCard({ d }) {
   return (
     <Link to={`/d/${d.slug}`} className={`card domain-card hue-${catHue(d.category)}`}>
-      <span className="icon-tile">{d.icon}</span>
+      <span className="icon-tile"><DomainIcon slug={d.slug} category={d.category} /></span>
       <h3>{d.name}</h3>
       <p className="muted">{d.description}</p>
       <div className="meta">
@@ -18,7 +20,7 @@ function DomainCard({ d }) {
         ) : (
           <span className="pill muted-pill">Coming soon</span>
         )}
-        <span className="arrow">→</span>
+        <ArrowRight className="arrow" size={18} aria-hidden />
       </div>
     </Link>
   );
@@ -58,7 +60,7 @@ export default function Home() {
   return (
     <>
       <section className="hero">
-        <span className="eyebrow">🌱 100% free · every skill · every country</span>
+        <span className="eyebrow"><Sprout size={15} aria-hidden /> 100% free · every skill · every country</span>
         <h1>
           Learn any skill, <em>in the right order.</em>
         </h1>
@@ -67,7 +69,7 @@ export default function Home() {
           A quick quiz after each step proves you really learned it.
         </p>
         <form className="hero-search" onSubmit={(e) => { e.preventDefault(); search(q); }}>
-          <span aria-hidden>🔍</span>
+          <Search size={20} color="#6b7a73" aria-hidden />
           <input aria-label="Search skills" placeholder="What do you want to learn?" value={q} onChange={(e) => setQ(e.target.value)} />
           <button className="btn small">Search</button>
         </form>
@@ -104,7 +106,7 @@ export default function Home() {
       <div className="chips" role="tablist" aria-label="Categories">
         {['All', ...CATEGORY_ORDER.filter((c) => categories.includes(c))].map((c) => (
           <button key={c} role="tab" aria-selected={cat === c} className={`chip hue-${catHue(c)} ${cat === c ? 'active' : ''}`} onClick={() => setCat(c)}>
-            {c === 'All' ? '✨' : catEmoji(c)} {c}
+            <CategoryIcon category={c} size={16} /> {c}
           </button>
         ))}
       </div>
@@ -117,7 +119,7 @@ export default function Home() {
       {groups.map(([c, list]) => (
         <section key={c} id={c}>
           <div className={`category-title hue-${catHue(c)}`}>
-            <span className="icon-tile">{catEmoji(c)}</span>
+            <span className="icon-tile"><CategoryIcon category={c} /></span>
             <h3>{c}</h3>
             <span className="count">{list.length}</span>
           </div>
@@ -127,7 +129,7 @@ export default function Home() {
 
       {domains && groups.length === 0 && (
         <div className="card empty">
-          <div className="big">🔎</div>
+          <SearchX className="big-icon" size={44} aria-hidden />
           <p>No skill matches “{q}” yet.</p>
           <button className="btn secondary small" onClick={() => { setQ(''); setCat('All'); }}>Show all skills</button>
         </div>

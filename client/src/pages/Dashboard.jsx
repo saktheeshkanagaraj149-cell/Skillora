@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { useAuth } from '../auth.jsx';
+import { DomainIcon } from '../icons.jsx';
+import { ArrowRight, Award, Compass, Plus } from 'lucide-react';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -20,10 +22,10 @@ export default function Dashboard() {
     <>
       <div className="welcome">
         <div>
-          <h1>Hi {user.name.split(' ')[0]} 👋</h1>
+          <h1>Hi {user.name.split(' ')[0]}!</h1>
           <p className="muted" style={{ margin: 0 }}>Small steps every day add up. Keep going!</p>
         </div>
-        <Link to="/" className="btn secondary small">+ Explore skills</Link>
+        <Link to="/" className="btn secondary small"><Plus size={16} /> Explore skills</Link>
       </div>
 
       <div className="stats">
@@ -37,7 +39,7 @@ export default function Dashboard() {
 
       {items && items.length === 0 && (
         <div className="card empty" style={{ marginTop: '2rem' }}>
-          <div className="big">🧭</div>
+          <Compass className="big-icon" size={44} aria-hidden />
           <h3>Start your first path</h3>
           <p className="muted">Pick any skill, from Python to photography, and follow it step by step.</p>
           <Link to="/" className="btn">Explore skills</Link>
@@ -52,10 +54,10 @@ export default function Dashboard() {
               const pct = Math.round((100 * i.done) / i.total);
               return (
                 <Link key={i.pathId} to={`/p/${i.pathId}`} className="card path-card">
-                  <span className="small muted">{i.domain?.icon} {i.domain?.name}</span>
+                  <span className="small muted with-icon"><DomainIcon slug={i.domain?.slug} size={15} /> {i.domain?.name}</span>
                   <h3>{i.title}</h3>
                   <div className="progress"><div style={{ width: `${pct}%` }} /></div>
-                  <div className="row-between small muted"><span>{i.done}/{i.total} steps</span><strong style={{ color: 'var(--leaf-strong)' }}>{pct}% →</strong></div>
+                  <div className="row-between small muted"><span>{i.done}/{i.total} steps</span><strong style={{ color: 'var(--leaf-strong)' }}>{pct}% <ArrowRight size={14} /></strong></div>
                 </Link>
               );
             })}
@@ -69,9 +71,9 @@ export default function Dashboard() {
           <div className="grid">
             {badges.map((b) => (
               <Link key={b.pathId} to={`/p/${b.pathId}`} className="card badge-card">
-                <span className="medal">🏅</span>
+                <span className="medal"><Award size={40} /></span>
                 <h3>{b.title}</h3>
-                <p className="small muted" style={{ margin: 0 }}>{b.domain?.icon} {b.domain?.name} · {new Date(b.completedAt).toLocaleDateString()}</p>
+                <p className="small muted" style={{ margin: 0 }}>{b.domain?.name} · {new Date(b.completedAt).toLocaleDateString()}</p>
               </Link>
             ))}
           </div>

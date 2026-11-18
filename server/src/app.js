@@ -158,7 +158,7 @@ export function createApp() {
 
   app.get('/api/me/progress', requireAuth, ah(async (req, res) => {
     const items = await Progress.find({ user: req.user._id })
-      .populate({ path: 'path', select: 'title level steps._id domain', populate: { path: 'domain', select: 'name icon slug' } })
+      .populate({ path: 'path', select: 'title level steps._id domain', populate: { path: 'domain', select: 'name icon slug category' } })
       .sort('-updatedAt')
       .lean();
     res.json(
@@ -178,7 +178,7 @@ export function createApp() {
 
   // ---------- Admin ----------
   app.get('/api/admin/paths', requireAdmin, ah(async (_req, res) => {
-    res.json(await Path.find().select('title level status domain generatedBy updatedAt steps._id').populate('domain', 'name icon').sort('-updatedAt').lean());
+    res.json(await Path.find().select('title level status domain generatedBy updatedAt steps._id').populate('domain', 'name icon slug').sort('-updatedAt').lean());
   }));
 
   app.post('/api/admin/paths/generate', requireAdmin, ah(async (req, res) => {

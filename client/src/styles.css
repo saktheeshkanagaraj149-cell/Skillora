@@ -343,3 +343,24 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--l
   .brand-mark { background: #12321f; }
   .how .step-no { background: #12321f; }
 }
+
+/* ============ icons (lucide) ============ */
+svg.lucide { flex-shrink: 0; }
+.icon-tile { color: var(--hue-fg, var(--leaf-strong)); }
+.banner .icon-tile { color: var(--hue-fg); }
+.with-icon, .facts span, .back, .result, .badge-banner .medal { display: inline-flex; align-items: center; gap: 0.4rem; }
+.quiz h4.with-icon { display: flex; }
+.big-icon { color: var(--leaf); margin-bottom: 0.4rem; }
+.empty .big-icon { display: block; margin: 0 auto 0.6rem; }
+.r-icon { color: var(--leaf-strong); }
+.resources .ext { color: var(--muted); }
+.badge-banner .medal, .badge-card .medal { color: var(--amber); }
+.badge-card .medal { display: flex; justify-content: center; }
+.auth-art li { align-items: center; }
+.auth-art li svg { color: #86efac; }
+.brand-mark { color: #86efac; }
+.chip svg { color: var(--hue-fg, var(--leaf)); }
+.chip.active svg { color: #86efac; }
+.eyebrow svg { color: #86efac; }
+.nav .with-icon { display: inline-flex; align-items: center; gap: 0.35rem; }
+.timeline .num svg { color: #fff; }
