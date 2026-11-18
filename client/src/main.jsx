@@ -14,21 +14,37 @@ function Nav() {
   const { user, logout } = useAuth();
   return (
     <header className="nav">
-      <Link to="/" className="brand">🌱 Skillora</Link>
-      <nav>
-        <NavLink to="/">Explore</NavLink>
-        {user && <NavLink to="/dashboard">My learning</NavLink>}
-        {user?.role === 'admin' && <NavLink to="/admin">Admin</NavLink>}
-        {user ? (
-          <button className="link" onClick={logout}>Log out</button>
-        ) : (
-          <>
-            <NavLink to="/login">Log in</NavLink>
-            <Link to="/register" className="btn small">Join free</Link>
-          </>
-        )}
-      </nav>
+      <div className="nav-inner">
+        <Link to="/" className="brand"><span className="brand-mark">🌱</span> Skillora</Link>
+        <nav>
+          <NavLink to="/" end>Explore</NavLink>
+          {user && <NavLink to="/dashboard">My learning</NavLink>}
+          {user?.role === 'admin' && <NavLink to="/admin">Admin</NavLink>}
+          {user ? (
+            <button className="link" onClick={logout}>Log out</button>
+          ) : (
+            <>
+              <NavLink to="/login">Log in</NavLink>
+              <Link to="/register" className="btn small">Join free</Link>
+            </>
+          )}
+        </nav>
+      </div>
     </header>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="footer">
+      <div className="footer-inner">
+        <div>
+          <span className="brand"><span className="brand-mark">🌱</span> Skillora</span>
+          <p>Free, step-by-step learning paths for every skill: engineering, tech, business, arts, languages and life skills.</p>
+        </div>
+        <div className="small muted">© {new Date().getFullYear()} Skillora · Made in India 🇮🇳 for learners everywhere</div>
+      </div>
+    </footer>
   );
 }
 
@@ -45,10 +61,10 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
           <Route path="/admin" element={<RequireAuth admin><Admin /></RequireAuth>} />
-          <Route path="*" element={<p className="center muted">Page not found. <Link to="/">Go home</Link></p>} />
+          <Route path="*" element={<div className="card empty"><div className="big">🧭</div><h3>Page not found</h3><Link to="/" className="btn small">Go home</Link></div>} />
         </Routes>
       </main>
-      <footer className="footer muted">Skillora · free learning paths for every skill</footer>
+      <Footer />
     </>
   );
 }
