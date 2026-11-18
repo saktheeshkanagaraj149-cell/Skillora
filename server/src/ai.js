@@ -103,26 +103,56 @@ export async function generatePath({ domain, topic, level = 'beginner', steps = 
     return { ...normalisePath(templatePath(input), input), generatedBy: 'template' };
   }
 
-  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-    body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: buildPrompt(input) }] }],
-      generationConfig: { responseMimeType: 'application/json', temperature: 0.4 },
-    }),
-  });
+  // Primary model first, then fallbacks when Google reports overload / rate limit.
+  const models = [
+    process.env.GEMINI_MODEL || 'gemini-flash-latest',
+    ...(process.env.GEMINI_FALLBACK_MODELS || 'gemini-flash-lite-latest,gemini-2.5-flash-lite').split(','),
+  ]
+    .map((m) => m.trim())
+    .filter((m, i, a) => m && a.indexOf(m) === i);
+
+  let lastError;
+  for (const model of models) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const parsed = await callGemini(model, key, buildPrompt(input));
+        return { ...normalisePath(parsed, input), generatedBy: model };
+      } catch (err) {
+        lastError = err;
+        if (!err.retryable) break; // e.g. 400/401/404: try the next model, don't retry this one
+        await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+      }
+    }
+  }
+  throw new Error(`AI is busy right now, please try again in a minute (${lastError?.message?.slice(0, 120)})`);
+}
+
+const RETRYABLE = new Set([429, 500, 502, 503, 504]);
+
+async function callGemini(model, key, prompt) {
+  let res;
+  try {
+    res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json', temperature: 0.4 },
+      }),
+      signal: AbortSignal.timeout(45_000),
+    });
+  } catch (e) {
+    throw Object.assign(new Error(`${model}: ${e.name === 'TimeoutError' ? 'timed out' : e.message}`), { retryable: e.name !== 'TimeoutError' }); // slow model: skip to fallback
+  }
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Gemini API error ${res.status}: ${body.slice(0, 300)}`);
+    throw Object.assign(new Error(`${model} ${res.status}: ${body.slice(0, 200)}`), { retryable: RETRYABLE.has(res.status) });
   }
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
-  let parsed;
   try {
-    parsed = JSON.parse(text);
+    return JSON.parse(text);
   } catch {
-    throw new Error('AI returned invalid JSON, try again');
+    throw Object.assign(new Error(`${model}: invalid JSON`), { retryable: true });
   }
-  return { ...normalisePath(parsed, input), generatedBy: model };
 }

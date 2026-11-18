@@ -187,7 +187,7 @@ export function createApp() {
   app.use((err, _req, res, _next) => {
     if (err.name === 'ValidationError') return res.status(400).json({ error: err.message });
     console.error(err);
-    res.status(500).json({ error: err.message?.startsWith('Gemini') || err.message?.startsWith('AI') ? err.message : 'Something went wrong' });
+    res.status(500).json({ error: err.message?.startsWith('AI') ? err.message : 'Something went wrong' });
   });
 
   return app;
