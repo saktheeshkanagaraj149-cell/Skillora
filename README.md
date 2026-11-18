@@ -33,7 +33,8 @@ Free content for any skill is already online, but it is scattered, unordered and
 ```bash
 npm run install:all                     # install server + client
 cp server/.env.example server/.env      # then set JWT_SECRET and ADMIN_PASSWORD
-npm run seed                            # 4 domains, admin account, sample "Photography Basics" path
+npm run seed                            # 23 domains in 7 categories, admin account, sample "Photography Basics" path
+npm run generate:starters               # AI drafts a beginner path for every domain without one (re-run to retry failures)
 npm run dev:server                      # API → http://localhost:5000
 npm run dev:client                      # app → http://localhost:5173  (second terminal)
 npm test                                # API tests

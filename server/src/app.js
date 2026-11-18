@@ -62,11 +62,11 @@ export function createApp() {
   }));
 
   app.post('/api/domains', requireAdmin, ah(async (req, res) => {
-    const { name, icon, description } = req.body || {};
+    const { name, icon, description, category } = req.body || {};
     if (!name) return res.status(400).json({ error: 'Name is required' });
     const slug = slugify(name);
     if (await Domain.exists({ slug })) return res.status(409).json({ error: 'Domain already exists' });
-    res.status(201).json(await Domain.create({ name, slug, icon, description }));
+    res.status(201).json(await Domain.create({ name, slug, icon, description, category: category || 'Other' }));
   }));
 
   app.get('/api/domains/:slug', ah(async (req, res) => {

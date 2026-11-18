@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { useAuth } from '../auth.jsx';
 
+const CATEGORY_ORDER = ['Technology', 'Engineering', 'Science & Maths', 'Business & Career', 'Creative Arts', 'Languages', 'Life Skills'];
+
 export default function Home() {
   const { user } = useAuth();
   const [domains, setDomains] = useState(null);
@@ -13,7 +15,10 @@ export default function Home() {
     api('/domains').then(setDomains).catch((e) => setError(e.message));
   }, []);
 
-  const shown = (domains || []).filter((d) => (d.name + d.description).toLowerCase().includes(q.toLowerCase()));
+  const shown = (domains || []).filter((d) => (d.name + d.description + (d.category || '')).toLowerCase().includes(q.toLowerCase()));
+  const groups = CATEGORY_ORDER.concat([...new Set(shown.map((d) => d.category || 'Other'))].filter((c) => !CATEGORY_ORDER.includes(c)))
+    .map((cat) => [cat, shown.filter((d) => (d.category || 'Other') === cat)])
+    .filter(([, list]) => list.length);
 
   return (
     <>
@@ -33,16 +38,28 @@ export default function Home() {
 
       {error && <p className="error">{error}</p>}
       {!domains && !error && <p className="muted">Loading…</p>}
-      <div className="grid">
-        {shown.map((d) => (
-          <Link key={d._id} to={`/d/${d.slug}`} className="card domain">
-            <span className="icon">{d.icon}</span>
-            <h3>{d.name}</h3>
-            <p className="muted">{d.description}</p>
-            <span className="pill">{d.pathCount} path{d.pathCount === 1 ? '' : 's'}</span>
-          </Link>
-        ))}
-      </div>
+      {groups.length > 1 && (
+        <div className="chips">
+          {groups.map(([cat]) => (
+            <a key={cat} href={`#${cat}`} className="pill">{cat}</a>
+          ))}
+        </div>
+      )}
+      {groups.map(([cat, list]) => (
+        <section key={cat} id={cat}>
+          <h3 className="category">{cat}</h3>
+          <div className="grid">
+            {list.map((d) => (
+              <Link key={d._id} to={`/d/${d.slug}`} className="card domain">
+                <span className="icon">{d.icon}</span>
+                <h3>{d.name}</h3>
+                <p className="muted">{d.description}</p>
+                <span className="pill">{d.pathCount ? `${d.pathCount} path${d.pathCount === 1 ? '' : 's'}` : 'Coming soon'}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ))}
       {domains && shown.length === 0 && <p className="muted">No domain matches “{q}”.</p>}
     </>
   );

@@ -61,14 +61,14 @@ function Generator({ domains, onCreated }) {
 }
 
 function NewDomain({ onCreated }) {
-  const [form, setForm] = useState({ name: '', icon: '📚', description: '' });
+  const [form, setForm] = useState({ name: '', icon: '📚', description: '', category: 'Technology' });
   const [error, setError] = useState('');
   const submit = async (e) => {
     e.preventDefault();
     setError('');
     try {
       onCreated(await api('/domains', { method: 'POST', body: form }));
-      setForm({ name: '', icon: '📚', description: '' });
+      setForm({ name: '', icon: '📚', description: '', category: form.category });
     } catch (err) {
       setError(err.message);
     }
@@ -80,6 +80,11 @@ function NewDomain({ onCreated }) {
         <label style={{ width: 80 }}>Icon<input value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} /></label>
         <label className="grow">Name<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
       </div>
+      <label>Category
+        <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+          {['Technology','Engineering','Science & Maths','Business & Career','Creative Arts','Languages','Life Skills','Other'].map((c) => <option key={c}>{c}</option>)}
+        </select>
+      </label>
       <label>Description<input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
       {error && <p className="error">{error}</p>}
       <button className="btn secondary">Add domain</button>

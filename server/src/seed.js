@@ -3,13 +3,7 @@ import bcrypt from 'bcryptjs';
 import { connectDB, disconnectDB } from './db.js';
 import { User, Domain, Path } from './models.js';
 import { normalisePath } from './ai.js';
-
-const DOMAINS = [
-  { name: 'Web Development', slug: 'web-development', icon: '💻', description: 'Build websites and web apps, from HTML to full-stack.' },
-  { name: 'Electronics', slug: 'electronics', icon: '🔌', description: 'Circuits, components, Arduino and embedded basics.' },
-  { name: 'Photography', slug: 'photography', icon: '📷', description: 'Camera basics, composition, light and editing.' },
-  { name: 'Spoken English', slug: 'spoken-english', icon: '🗣️', description: 'Confident everyday and professional English.' },
-];
+import { DOMAINS } from './domains.js';
 
 // One hand-written sample path so the app has real content without an AI key.
 const PHOTO_PATH = {
@@ -66,7 +60,9 @@ const PHOTO_PATH = {
 await connectDB();
 
 for (const d of DOMAINS) {
-  await Domain.updateOne({ slug: d.slug }, { $setOnInsert: d }, { upsert: true });
+  const { category, slug, starter, ...rest } = d;
+  // category is always synced; name/icon/description only set on first insert so admin edits survive
+  await Domain.updateOne({ slug }, { $set: { category }, $setOnInsert: { slug, ...rest } }, { upsert: true });
 }
 
 const email = (process.env.ADMIN_EMAIL || 'admin@skillora.local').toLowerCase();

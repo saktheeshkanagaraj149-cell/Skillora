@@ -19,6 +19,7 @@ const domainSchema = new Schema(
     name: { type: String, required: true, unique: true, trim: true },
     slug: { type: String, required: true, unique: true },
     icon: { type: String, default: '📚' },
+    category: { type: String, default: 'Other' },
     description: { type: String, default: '' },
   },
   { timestamps: true },
