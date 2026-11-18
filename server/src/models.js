@@ -1,0 +1,82 @@
+import mongoose from 'mongoose';
+
+const { Schema, model } = mongoose;
+
+const userSchema = new Schema(
+  {
+    name: { type: String, required: true, trim: true, maxlength: 80 },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    passwordHash: { type: String, required: true },
+    // 'tutor' is reserved for stage 3
+    role: { type: String, enum: ['learner', 'tutor', 'admin'], default: 'learner' },
+    country: { type: String, default: '' },
+  },
+  { timestamps: true },
+);
+
+const domainSchema = new Schema(
+  {
+    name: { type: String, required: true, unique: true, trim: true },
+    slug: { type: String, required: true, unique: true },
+    icon: { type: String, default: '📚' },
+    description: { type: String, default: '' },
+  },
+  { timestamps: true },
+);
+
+const resourceSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    url: { type: String, required: true },
+    type: { type: String, enum: ['video', 'article', 'course', 'practice', 'search'], default: 'search' },
+  },
+  { _id: false },
+);
+
+const questionSchema = new Schema(
+  {
+    question: { type: String, required: true },
+    options: { type: [String], validate: (v) => v.length >= 2 && v.length <= 6 },
+    answer: { type: Number, required: true }, // index into options; never sent to learners
+  },
+  { _id: false },
+);
+
+const stepSchema = new Schema({
+  title: { type: String, required: true },
+  summary: { type: String, default: '' },
+  estimatedHours: { type: Number, default: 1 },
+  resources: [resourceSchema],
+  quiz: [questionSchema],
+});
+
+const pathSchema = new Schema(
+  {
+    domain: { type: Schema.Types.ObjectId, ref: 'Domain', required: true, index: true },
+    title: { type: String, required: true, trim: true },
+    level: { type: String, enum: ['beginner', 'intermediate', 'advanced'], default: 'beginner' },
+    description: { type: String, default: '' },
+    steps: [stepSchema],
+    status: { type: String, enum: ['draft', 'published'], default: 'draft', index: true },
+    generatedBy: { type: String, default: 'manual' },
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
+  },
+  { timestamps: true },
+);
+
+const progressSchema = new Schema(
+  {
+    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    path: { type: Schema.Types.ObjectId, ref: 'Path', required: true },
+    completedSteps: [{ type: Schema.Types.ObjectId }],
+    quizScores: { type: Map, of: Number, default: {} }, // stepId -> best score (0-100)
+    completedAt: { type: Date, default: null }, // set when every step is done = badge earned
+  },
+  { timestamps: true },
+);
+progressSchema.index({ user: 1, path: 1 }, { unique: true });
+
+export const User = model('User', userSchema);
+export const Domain = model('Domain', domainSchema);
+export const Path = model('Path', pathSchema);
+export const Progress = model('Progress', progressSchema);
