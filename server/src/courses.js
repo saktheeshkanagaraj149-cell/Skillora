@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import mongoose from 'mongoose';
 import { Certificate, Domain, Path, Progress } from './models.js';
 import { requireAuth } from './auth.js';
-import { check, pathResource } from './authz.js';
+import { check, pathResource, can, FORBIDDEN } from './authz.js';
 import { enrichPath } from './ai.js';
 import { fillVideos, hasYouTubeKey, QuotaError } from './youtube.js';
 

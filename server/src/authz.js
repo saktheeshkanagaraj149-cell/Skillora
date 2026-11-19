@@ -38,6 +38,17 @@ export async function check(user, resource, actions) {
   return (action) => decision.isAllowed(action) === true;
 }
 
+/**
+ * Convenience wrapper: checks a single action and returns boolean.
+ */
+export async function can(user, resource, action) {
+  const allowed = await check(user, resource, [action]);
+  return allowed(action);
+}
+
+/** Standard 403 response body for permission denials. */
+export const FORBIDDEN = { error: 'You do not have permission to do that' };
+
 /** Express middleware for actions that don't depend on a specific document (list, create). */
 export const authorize = (kind, action) => async (req, res, next) => {
   try {
