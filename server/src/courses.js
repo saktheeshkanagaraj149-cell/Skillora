@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import mongoose from 'mongoose';
 import { Certificate, Domain, Path, Progress } from './models.js';
 import { requireAuth } from './auth.js';
-import { check, pathResource } from './authz.js';
+import { authorize, can, FORBIDDEN, pathResource } from './authz.js';
 import { enrichPath } from './ai.js';
 import { fillVideos, hasYouTubeKey, QuotaError } from './youtube.js';
 
@@ -14,10 +14,6 @@ export const EXAM_PASS_MARK = 70; // % needed on the final exam to earn the cert
 
 const isId = (id) => mongoose.isValidObjectId(id);
 const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
-
-const FORBIDDEN = { error: 'You do not have permission to do that' };
-/** Cerbos decision for one action on a path (policies: server/cerbos/policies/path.yaml). */
-const can = async (user, path, action) => (await check(user, pathResource(path), [action]))(action);
 
 const allLessonsDone = (path, progress) =>
   Boolean(progress) && path.steps.every((s) => progress.completedSteps.some((c) => c.equals(s._id)));
@@ -93,7 +89,7 @@ export function registerCourseRoutes(app) {
     if (!isId(req.params.id)) return res.status(404).json({ error: 'Course not found' });
     const path = await Path.findOne({ _id: req.params.id, status: 'published' }).populate('domain', 'name');
     if (!path) return res.status(404).json({ error: 'Course not found' });
-    if (!(await can(req.user, path, 'take_exam'))) return res.status(403).json(FORBIDDEN);
+    if (!(await can(req.user, pathResource(path), 'take_exam'))) return res.status(403).json(FORBIDDEN);
     if (!path.finalExam.length) return res.status(400).json({ error: 'This course has no final exam' });
     const progress = await Progress.findOne({ user: req.user._id, path: path._id });
     if (!allLessonsDone(path, progress)) return res.status(400).json({ error: 'Finish every lesson before the final exam' });
@@ -119,7 +115,7 @@ export function registerCourseRoutes(app) {
     if (!isId(req.params.id)) return res.status(404).json({ error: 'Course not found' });
     const path = await Path.findById(req.params.id).populate('domain', 'name');
     if (!path) return res.status(404).json({ error: 'Course not found' });
-    if (!(await can(req.user, path, 'claim_certificate'))) return res.status(403).json(FORBIDDEN);
+    if (!(await can(req.user, pathResource(path), 'claim_certificate'))) return res.status(403).json(FORBIDDEN);
     const progress = await Progress.findOne({ user: req.user._id, path: path._id });
     const cert = await issueCertificate(req.user, path, progress);
     if (!cert) {
@@ -130,13 +126,14 @@ export function registerCourseRoutes(app) {
     res.json(publicCertificate(cert));
   }));
 
-  // Own certificates only (filtered by req.user), so no Cerbos resource check is needed.
-  app.get('/api/me/certificates', requireAuth, ah(async (req, res) => {
+  // Own certificates only (the query is filtered by req.user).
+  app.get('/api/me/certificates', requireAuth, authorize('certificate', 'list_mine'), ah(async (req, res) => {
     const certs = await Certificate.find({ user: req.user._id }).sort('-createdAt').lean();
     res.json(certs.map(publicCertificate));
   }));
 
   // Public verification by design: anyone with the code can check it is genuine. Only public fields are returned.
+  // Deliberately not behind Cerbos, so certificates stay verifiable even if the permission service is down.
   app.get('/api/certificates/:code', ah(async (req, res) => {
     const code = String(req.params.code).toUpperCase();
     if (!/^SK-[A-Z0-9]{5}-[A-Z0-9]{5}$/.test(code)) return res.status(404).json({ error: 'Certificate not found' });
@@ -151,7 +148,7 @@ export function registerCourseRoutes(app) {
     if (!isId(req.params.id)) return res.status(404).json({ error: 'Path not found' });
     const path = await Path.findById(req.params.id).populate('domain', 'name');
     if (!path) return res.status(404).json({ error: 'Path not found' });
-    if (!(await can(req.user, path, 'update'))) return res.status(403).json(FORBIDDEN); // enriching edits the course
+    if (!(await can(req.user, pathResource(path), 'enrich'))) return res.status(403).json(FORBIDDEN);
     const { structure = true, videos = true, overwrite = false } = req.body || {};
     const notes = [];
 

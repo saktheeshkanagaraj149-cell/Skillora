@@ -1,4 +1,8 @@
 # Who can manage and verify certificates.
+# Enforced in server/src/courses.js: list_mine on GET /api/me/certificates. Issuing a certificate is checked
+# as path:claim_certificate (it depends on the course being published). Public verification
+# (GET /api/certificates/:code) intentionally skips Cerbos so it works even when Cerbos is down;
+# the verify rule documents that it is public.
 # Roles come from User.role (learner | tutor | admin); visitors who are not logged in are "guest".
 apiVersion: api.cerbos.dev/v1
 resourcePolicy:
