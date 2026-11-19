@@ -11,9 +11,13 @@
     "test": "node --test \"test/**/*.test.js\"",
     "generate:starters": "node src/generateStarters.js",
     "copy-data": "node src/copyData.js",
-    "build:courses": "node src/buildCourses.js"
+    "build:courses": "node src/buildCourses.js",
+    "cerbos": "docker compose -f ../docker-compose.yml up -d cerbos",
+    "cerbos:stop": "docker compose -f ../docker-compose.yml stop cerbos",
+    "test:policies": "docker compose -f ../docker-compose.yml run --rm cerbos compile /policies"
   },
   "dependencies": {
+    "@cerbos/http": "^0.30.3",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

@@ -1,0 +1,101 @@
+# Policy tests, run with: npm run test:policies   (cerbos compile runs every *_test.yaml)
+name: SkilloraPolicies
+principals:
+  guest: { id: anonymous, roles: [guest] }
+  learner: { id: learner1, roles: [learner] }
+  tutor: { id: tutor1, roles: [tutor] }
+  admin: { id: admin1, roles: [admin] }
+
+resources:
+  published_path: { kind: path, id: p1, attr: { status: published } }
+  draft_path: { kind: path, id: p2, attr: { status: draft } }
+  domain: { kind: domain, id: new, attr: {} }
+
+tests:
+  - name: Published paths are public, only admins see answers or manage them
+    input:
+      principals: [guest, learner, tutor, admin]
+      resources: [published_path]
+      actions: [view, view_answers, complete_step, list_all, create, update, delete]
+    expected:
+      - principal: guest
+        resource: published_path
+        actions: { view: EFFECT_ALLOW, view_answers: EFFECT_DENY, complete_step: EFFECT_DENY, list_all: EFFECT_DENY, create: EFFECT_DENY, update: EFFECT_DENY, delete: EFFECT_DENY }
+      - principal: learner
+        resource: published_path
+        actions: { view: EFFECT_ALLOW, view_answers: EFFECT_DENY, complete_step: EFFECT_ALLOW, list_all: EFFECT_DENY, create: EFFECT_DENY, update: EFFECT_DENY, delete: EFFECT_DENY }
+      - principal: tutor
+        resource: published_path
+        actions: { view: EFFECT_ALLOW, view_answers: EFFECT_DENY, complete_step: EFFECT_ALLOW, list_all: EFFECT_DENY, create: EFFECT_DENY, update: EFFECT_DENY, delete: EFFECT_DENY }
+      - principal: admin
+        resource: published_path
+        actions: { view: EFFECT_ALLOW, view_answers: EFFECT_ALLOW, complete_step: EFFECT_ALLOW, list_all: EFFECT_ALLOW, create: EFFECT_ALLOW, update: EFFECT_ALLOW, delete: EFFECT_ALLOW }
+
+  - name: Drafts are hidden from everyone except admins
+    input:
+      principals: [guest, learner, tutor, admin]
+      resources: [draft_path]
+      actions: [view, complete_step]
+    expected:
+      - principal: guest
+        resource: draft_path
+        actions: { view: EFFECT_DENY, complete_step: EFFECT_DENY }
+      - principal: learner
+        resource: draft_path
+        actions: { view: EFFECT_DENY, complete_step: EFFECT_DENY }
+      - principal: tutor
+        resource: draft_path
+        actions: { view: EFFECT_DENY, complete_step: EFFECT_DENY }
+      - principal: admin
+        resource: draft_path
+        actions: { view: EFFECT_ALLOW, complete_step: EFFECT_DENY }
+
+  - name: Only logged-in users take the final exam and get certificates, and only on published courses
+    input:
+      principals: [guest, learner, tutor, admin]
+      resources: [published_path, draft_path]
+      actions: [take_exam, claim_certificate]
+    expected:
+      - principal: guest
+        resource: published_path
+        actions: { take_exam: EFFECT_DENY, claim_certificate: EFFECT_DENY }
+      - principal: learner
+        resource: published_path
+        actions: { take_exam: EFFECT_ALLOW, claim_certificate: EFFECT_ALLOW }
+      - principal: tutor
+        resource: published_path
+        actions: { take_exam: EFFECT_ALLOW, claim_certificate: EFFECT_ALLOW }
+      - principal: admin
+        resource: published_path
+        actions: { take_exam: EFFECT_ALLOW, claim_certificate: EFFECT_ALLOW }
+      - principal: guest
+        resource: draft_path
+        actions: { take_exam: EFFECT_DENY, claim_certificate: EFFECT_DENY }
+      - principal: learner
+        resource: draft_path
+        actions: { take_exam: EFFECT_DENY, claim_certificate: EFFECT_DENY }
+      - principal: tutor
+        resource: draft_path
+        actions: { take_exam: EFFECT_DENY, claim_certificate: EFFECT_DENY }
+      - principal: admin
+        resource: draft_path
+        actions: { take_exam: EFFECT_DENY, claim_certificate: EFFECT_DENY }
+
+  - name: Only admins create domains
+    input:
+      principals: [guest, learner, tutor, admin]
+      resources: [domain]
+      actions: [create]
+    expected:
+      - principal: guest
+        resource: domain
+        actions: { create: EFFECT_DENY }
+      - principal: learner
+        resource: domain
+        actions: { create: EFFECT_DENY }
+      - principal: tutor
+        resource: domain
+        actions: { create: EFFECT_DENY }
+      - principal: admin
+        resource: domain
+        actions: { create: EFFECT_ALLOW }

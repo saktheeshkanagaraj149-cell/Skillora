@@ -1,0 +1,16 @@
+# Local Cerbos (authorization) server for development and tests.
+#   start:          npm run cerbos --prefix server
+#   policy tests:   npm run test:policies --prefix server
+services:
+  cerbos:
+    image: ghcr.io/cerbos/cerbos:0.57.0
+    command: ["server", "--config=/config.yaml"]
+    ports:
+      - "3592:3592"
+      - "3593:3593"
+    volumes:
+      - ./server/cerbos/config.yaml:/config.yaml:ro
+      - ./server/cerbos/policies:/policies:ro
+    environment:
+      CERBOS_NO_TELEMETRY: "1"
+    restart: unless-stopped
