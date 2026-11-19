@@ -37,16 +37,15 @@ Free content for any skill is already online, but it is scattered, unordered and
 ```bash
 npm run install:all                     # install server + client
 cp server/.env.example server/.env      # then set JWT_SECRET and ADMIN_PASSWORD
-npm run cerbos --prefix server          # start the Cerbos authorization server (needs Docker Desktop)
 npm run seed                            # 23 domains in 7 categories, admin account, sample "Photography Basics" path
-npm run generate:starters               # AI drafts a beginner path for every domain without one (re-run to retry failures)
 npm run build:courses                   # full course (modules, videos, exam) for every skill, see docs/COURSES.md
-npm run dev:server                      # API → http://localhost:5000
-npm run dev:client                      # app → http://localhost:5173  (second terminal)
+npm run dev                             # starts Cerbos (Docker) + API (:5000) + app → http://localhost:5173
 npm test                                # API tests (Cerbos must be running)
 npm run test:policies --prefix server   # Cerbos policy tests
 ```
 
+- **"Can't reach the Skillora server" / skills don't load:** the website is running without the API. Use `npm run dev`,
+  which starts all three parts. Running them separately: `npm run cerbos --prefix server`, `npm run dev:server`, `npm run dev:client`.
 - **No MongoDB install needed for development:** if `MONGO_URI` is empty, the server starts a local MongoDB automatically and keeps the data in `server/.data/`. Use MongoDB Atlas in production.
 - **AI is optional:** without `GEMINI_API_KEY`, "Generate" makes a template draft you can edit. Get a free key at https://aistudio.google.com/apikey.
 - **Permissions live in Cerbos policies**, not in route code: `server/cerbos/policies/*.yaml`, with tests in `policies/tests/`. Roles are `guest` (not logged in), `learner`, `tutor` and `admin`. If Cerbos is unreachable the API refuses protected actions with 503 (fails closed) and `/api/health` reports `authz: down`.
