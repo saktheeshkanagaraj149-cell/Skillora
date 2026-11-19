@@ -7,9 +7,11 @@ services:
     runtime: docker
     plan: free
     region: singapore # closest Render region to the Atlas cluster in Mumbai
-    rootDir: server # only changes under server/ trigger a deploy
-    dockerfilePath: ./server/Dockerfile # repo-root relative
+    # Paths are relative to the repo root (no rootDir, so there is no ambiguity about what they're relative to)
+    dockerfilePath: ./server/Dockerfile
     dockerContext: ./server
+    buildFilter:
+      paths: ["server/**"] # only changes under server/ trigger a deploy
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
@@ -25,5 +27,7 @@ services:
         sync: false
       - key: YOUTUBE_API_KEY
         sync: false
+      - key: YOUTUBE_LANGUAGE
+        value: en
       - key: GEMINI_MODEL
         value: gemini-flash-latest

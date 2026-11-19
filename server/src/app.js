@@ -52,7 +52,7 @@ export function createApp() {
   app.use(express.json({ limit: '1mb' }));
   app.use('/api', limiter(15, 600, 'Too many requests, slow down a little'));
   app.use(['/api/auth/login', '/api/auth/register'], limiter(15, 20, 'Too many attempts, try again in 15 minutes'));
-  app.use('/api/admin/paths/generate', limiter(60, 30, 'AI generation limit reached, try again later'));
+  app.use(['/api/admin/paths/generate', '/api/admin/paths/:id/enrich'], limiter(60, 30, 'AI generation limit reached, try again later'));
   app.use(optionalAuth);
 
   app.get('/api/health', async (_req, res) => {
@@ -64,7 +64,9 @@ export function createApp() {
 
   // ---------- Auth ----------
   app.post('/api/auth/register', ah(async (req, res) => {
-    const { name, email, password, country = '' } = req.body || {};
+    const body = req.body || {};
+    // Coerce to strings: arrays/objects in JSON must not reach Mongo queries or crash .toLowerCase()
+    const [name, email, password, country] = ['name', 'email', 'password', 'country'].map((k) => (typeof body[k] === 'string' ? body[k].trim() : ''));
     if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password are required' });
     if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Enter a valid email' });
     if (String(password).length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
@@ -74,9 +76,10 @@ export function createApp() {
   }));
 
   app.post('/api/auth/login', ah(async (req, res) => {
-    const { email = '', password = '' } = req.body || {};
-    const user = await User.findOne({ email: String(email).toLowerCase() });
-    if (!user || !(await bcrypt.compare(String(password), user.passwordHash))) {
+    const { email, password } = req.body || {};
+    if (typeof email !== 'string' || typeof password !== 'string') return res.status(401).json({ error: 'Wrong email or password' });
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
+    if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
       return res.status(401).json({ error: 'Wrong email or password' });
     }
     res.json({ token: signToken(user), user: publicUser(user) });
@@ -95,11 +98,12 @@ export function createApp() {
   }));
 
   app.post('/api/domains', requireAuth, authorize('domain', 'create'), ah(async (req, res) => {
-    const { name, icon, description, category } = req.body || {};
+    const str = (v) => (typeof v === 'string' ? v.trim() : '');
+    const [name, icon, description, category] = ['name', 'icon', 'description', 'category'].map((k) => str(req.body?.[k]));
     if (!name) return res.status(400).json({ error: 'Name is required' });
     const slug = slugify(name);
     if (await Domain.exists({ slug })) return res.status(409).json({ error: 'Domain already exists' });
-    res.status(201).json(await Domain.create({ name, slug, icon, description, category: category || 'Other' }));
+    res.status(201).json(await Domain.create({ name, slug, icon: icon || undefined, description, category: category || 'Other' }));
   }));
 
   app.get('/api/domains/:slug', ah(async (req, res) => {
@@ -198,7 +202,7 @@ export function createApp() {
 
   app.post('/api/admin/paths/generate', requireAuth, authorize('path', 'create'), ah(async (req, res) => {
     const { domainId, topic, level, steps } = req.body || {};
-    if (!isId(domainId) || !topic) return res.status(400).json({ error: 'Domain and topic are required' });
+    if (!isId(domainId) || typeof topic !== 'string' || !topic.trim()) return res.status(400).json({ error: 'Domain and topic are required' });
     const domain = await Domain.findById(domainId);
     if (!domain) return res.status(404).json({ error: 'Domain not found' });
     const draft = await generatePath({ domain: domain.name, topic: String(topic).slice(0, 150), level, steps });

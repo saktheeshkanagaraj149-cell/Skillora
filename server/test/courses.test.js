@@ -111,7 +111,9 @@ test('final exam unlocks the certificate, which anyone can verify', async () => 
   const fail = await call(`/paths/${id}/exam`, { method: 'POST', token: learner, body: { answers: [0, 1, 0, 0] } });
   assert.equal(fail.data.passed, false);
   assert.equal(fail.data.score, 50);
-  assert.equal(fail.data.results[2].answer, undefined);
+  assert.equal(fail.data.results, null); // no per-question right/wrong after a fail: it would leak the key
+  assert.equal(fail.data.correctCount, 2);
+  assert.equal(fail.data.total, 4);
   assert.equal(fail.data.certificate, null);
 
   // 3/4 = 75%: pass -> certificate
@@ -142,6 +144,17 @@ test('final exam unlocks the certificate, which anyone can verify', async () => 
 
   const mine = await call('/me/certificates', { token: learner });
   assert.equal(mine.data.length, 1);
+});
+
+test('malformed auth/domain input is rejected cleanly, not a 500', async () => {
+  assert.equal((await call('/auth/register', { method: 'POST', body: { name: 'X', email: ['a@b.co'], password: 'password1' } })).status, 400);
+  assert.equal((await call('/auth/register', { method: 'POST', body: { name: { $gt: '' }, email: 'n@b.co', password: 'password1' } })).status, 400);
+  assert.equal((await call('/auth/login', { method: 'POST', body: { email: { $ne: null }, password: 'x' } })).status, 401);
+  const ok = await call('/auth/register', { method: 'POST', body: { name: '  Spacey  ', email: ' Spacey@B.co ', password: 'password1' } });
+  assert.equal(ok.status, 201);
+  assert.equal(ok.data.user.name, 'Spacey');
+  assert.equal(ok.data.user.email, 'spacey@b.co');
+  assert.equal((await call('/auth/login', { method: 'POST', body: { email: 'SPACEY@b.co ', password: 'password1' } })).status, 200);
 });
 
 test('courses without an exam award the certificate on completion; admin enrich degrades without keys', async () => {

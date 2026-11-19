@@ -4,6 +4,7 @@
  */
 import crypto from 'node:crypto';
 import mongoose from 'mongoose';
+import { rateLimit } from 'express-rate-limit';
 import { Certificate, Domain, Path, Progress } from './models.js';
 import { requireAuth } from './auth.js';
 import { authorize, can, FORBIDDEN, pathResource } from './authz.js';
@@ -83,9 +84,20 @@ export function applyEnrichment(path, e, { overwrite = false } = {}) {
   if (e.finalExam.length && (overwrite || path.finalExam.length === 0)) path.finalExam = e.finalExam;
 }
 
+// Per-learner cap on exam submissions, so the answer key can't be found by brute force.
+const examLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  keyGenerator: (req) => `exam:${req.user._id}:${req.params.id}`,
+  message: { error: 'Too many exam attempts. Review the lessons and try again in an hour.' },
+  skip: () => process.env.NODE_ENV === 'test',
+});
+
 export function registerCourseRoutes(app) {
   // ---------- Final exam ----------
-  app.post('/api/paths/:id/exam', requireAuth, ah(async (req, res) => {
+  app.post('/api/paths/:id/exam', requireAuth, examLimiter, ah(async (req, res) => {
     if (!isId(req.params.id)) return res.status(404).json({ error: 'Course not found' });
     const path = await Path.findOne({ _id: req.params.id, status: 'published' }).populate('domain', 'name');
     if (!path) return res.status(404).json({ error: 'Course not found' });
@@ -104,9 +116,18 @@ export function registerCourseRoutes(app) {
     await progress.save();
 
     const certificate = passed ? await issueCertificate(req.user, path, progress) : null;
-    // Correct answers are only revealed after passing, so failed attempts can't be farmed for the key.
-    const results = correct.map((ok, i) => (passed ? { correct: ok, answer: path.finalExam[i].answer } : { correct: ok }));
-    res.json({ passed, score, passMark: EXAM_PASS_MARK, results, progress, certificate: certificate && publicCertificate(certificate) });
+    // After a fail, only the score is returned: per-question right/wrong would leak the answer key in a few attempts.
+    const results = passed ? correct.map((ok, i) => ({ correct: ok, answer: path.finalExam[i].answer })) : null;
+    res.json({
+      passed,
+      score,
+      correctCount: correct.filter(Boolean).length,
+      total: path.finalExam.length,
+      passMark: EXAM_PASS_MARK,
+      results,
+      progress,
+      certificate: certificate && publicCertificate(certificate),
+    });
   }));
 
   // ---------- Certificates ----------

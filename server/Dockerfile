@@ -10,5 +10,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --omit=optional
 COPY . .
 ENV CERBOS_URL=http://127.0.0.1:3592 CERBOS_NO_TELEMETRY=1
+# Run as the unprivileged user that ships with the node image, not root
+USER node
 # Cerbos runs in the background; if it dies, API checks fail closed (503) and /api/health reports it down.
 CMD ["sh", "-c", "cerbos server --config=/app/cerbos/config.yaml --set=storage.disk.directory=/app/cerbos/policies --set=storage.disk.watchForChanges=false & exec node src/index.js"]

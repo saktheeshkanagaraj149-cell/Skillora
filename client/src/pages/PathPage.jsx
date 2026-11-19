@@ -159,7 +159,6 @@ function FinalExam({ path, unlocked, bestScore, onPassed }) {
     }
   };
 
-  const wrong = result && !result.passed ? result.results.filter((r) => !r.correct).length : 0;
 
   return (
     <section id="final-exam" className={`card exam ${unlocked ? '' : 'locked'}`}>
@@ -181,7 +180,7 @@ function FinalExam({ path, unlocked, bestScore, onPassed }) {
           <button className="btn" disabled={busy || answers.includes(null)} onClick={submit}>{busy ? 'Grading…' : 'Submit exam'}</button>
           {result && !result.passed && (
             <div className="result fail">
-              {result.score}%: {wrong} answer{wrong === 1 ? '' : 's'} marked in red. You need {result.passMark}%. Review those lessons and try again.
+              {result.score}%: {result.correctCount} of {result.total} right. You need {result.passMark}%. Review the lessons and try again.
             </div>
           )}
           {error && <p className="error">{error}</p>}

@@ -10,6 +10,8 @@ if (process.env.NODE_ENV === 'production') {
     console.error('[config] missing required env vars: ' + missing.join(', '));
     process.exit(1);
   }
+  const optional = ['GEMINI_API_KEY', 'YOUTUBE_API_KEY'].filter((k) => !process.env[k]);
+  if (optional.length) console.warn('[config] not set (features degrade): ' + optional.join(', '));
 }
 
 await connectDB();

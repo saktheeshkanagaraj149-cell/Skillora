@@ -16,7 +16,7 @@ function DomainCard({ d }) {
       <p className="muted">{d.description}</p>
       <div className="meta">
         {d.pathCount ? (
-          <span className="pill count-pill">{d.pathCount} path{d.pathCount === 1 ? '' : 's'}</span>
+          <span className="pill count-pill">{d.pathCount} course{d.pathCount === 1 ? '' : 's'}</span>
         ) : (
           <span className="pill muted-pill">Coming soon</span>
         )}
@@ -65,7 +65,7 @@ export default function Home() {
           Learn any skill, <em>in the right order.</em>
         </h1>
         <p className="lead">
-          Skillora turns the best free videos and articles into clear step-by-step paths, from engineering to photography.
+          Skillora turns the best free videos and articles into structured courses with video lessons, quizzes and a free certificate, from engineering to photography.
           A quick quiz after each step proves you really learned it.
         </p>
         <form className="hero-search" onSubmit={(e) => { e.preventDefault(); search(q); }}>
@@ -84,7 +84,7 @@ export default function Home() {
       <div className="stats">
         <div className="stat"><b>{domains ? domains.length : '·'}</b><span>skill domains</span></div>
         <div className="stat"><b>{domains ? categories.length : '·'}</b><span>categories</span></div>
-        <div className="stat"><b>{domains ? totalPaths : '·'}</b><span>published paths</span></div>
+        <div className="stat"><b>{domains ? totalPaths : '·'}</b><span>published courses</span></div>
         <div className="stat"><b>₹0</b><span>forever, for learners</span></div>
       </div>
 

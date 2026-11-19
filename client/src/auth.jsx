@@ -12,7 +12,8 @@ export function AuthProvider({ children }) {
     if (!tokenStore.get()) return setReady(true);
     api('/auth/me')
       .then((d) => setUser(d.user))
-      .catch(() => tokenStore.set(null))
+      // Only a rejected token logs you out; a slow or restarting server (e.g. Render waking up) must not
+      .catch((e) => { if (e.status === 401) tokenStore.set(null); })
       .finally(() => setReady(true));
   }, []);
 
