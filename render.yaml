@@ -3,20 +3,18 @@
 services:
   - type: web
     name: skillora-api
-    runtime: node
+    # Docker image = Node API + Cerbos authorization server in one container (see server/Dockerfile)
+    runtime: docker
     plan: free
     region: singapore # closest Render region to the Atlas cluster in Mumbai
-    rootDir: server
-    # --omit=optional skips mongodb-memory-server (dev/test only, downloads a large binary)
-    buildCommand: npm ci --omit=optional
-    startCommand: npm start
+    rootDir: server # only changes under server/ trigger a deploy
+    dockerfilePath: ./server/Dockerfile # repo-root relative
+    dockerContext: ./server
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
-      - key: NODE_VERSION
-        value: "22"
       - key: MONGO_URI
         sync: false # Atlas connection string
       - key: JWT_SECRET

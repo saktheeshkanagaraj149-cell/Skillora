@@ -28,7 +28,8 @@ Free content for any skill is already online, but it is scattered, unordered and
 ## Tech stack
 - **Client:** React 18 + Vite + React Router
 - **Server:** Node.js + Express + MongoDB Atlas (Mongoose), JWT auth, bcrypt, helmet, rate limiting
-- **Hosting:** Render (API) + Vercel (web) + MongoDB Atlas (DB)
+- **Authorization:** [Cerbos](https://github.com/cerbos/cerbos) policies decide who can view, complete, create, edit and delete paths and domains
+- **Hosting:** Render (API + Cerbos in one Docker container) + Vercel (web) + MongoDB Atlas (DB)
 - **AI:** Google Gemini (free tier) drafts paths and quizzes. It returns *search queries*, not URLs, so we never ship made-up links. Admins swap in hand-picked resources before publishing.
 
 ## Run it locally
@@ -36,15 +37,18 @@ Free content for any skill is already online, but it is scattered, unordered and
 ```bash
 npm run install:all                     # install server + client
 cp server/.env.example server/.env      # then set JWT_SECRET and ADMIN_PASSWORD
+npm run cerbos --prefix server          # start the Cerbos authorization server (needs Docker Desktop)
 npm run seed                            # 23 domains in 7 categories, admin account, sample "Photography Basics" path
 npm run generate:starters               # AI drafts a beginner path for every domain without one (re-run to retry failures)
 npm run dev:server                      # API → http://localhost:5000
 npm run dev:client                      # app → http://localhost:5173  (second terminal)
-npm test                                # API tests
+npm test                                # API tests (Cerbos must be running)
+npm run test:policies --prefix server   # Cerbos policy tests
 ```
 
 - **No MongoDB install needed for development:** if `MONGO_URI` is empty, the server starts a local MongoDB automatically and keeps the data in `server/.data/`. Use MongoDB Atlas in production.
 - **AI is optional:** without `GEMINI_API_KEY`, "Generate" makes a template draft you can edit. Get a free key at https://aistudio.google.com/apikey.
+- **Permissions live in Cerbos policies**, not in route code: `server/cerbos/policies/*.yaml`, with tests in `policies/tests/`. Roles are `guest` (not logged in), `learner`, `tutor` and `admin`. If Cerbos is unreachable the API refuses protected actions with 503 (fails closed) and `/api/health` reports `authz: down`.
 - Log in with `ADMIN_EMAIL` / `ADMIN_PASSWORD` from `server/.env` to open **/admin**.
 
 ## Project structure
@@ -56,9 +60,12 @@ client/src/
 server/src/
   models.js     User, Domain, Path (steps, resources, quiz), Progress
   app.js        all API routes
+  auth.js       login (JWT): who you are
+  authz.js      Cerbos checks: what you may do
   ai.js         Gemini path generator + output validation
   seed.js       starter data
 server/test/    API tests (node:test)
+server/cerbos/  Cerbos config, policies and policy tests
 ```
 
 ## API

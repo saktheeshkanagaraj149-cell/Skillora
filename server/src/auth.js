@@ -31,8 +31,4 @@ export function requireAuth(req, res, next) {
   next();
 }
 
-export function requireAdmin(req, res, next) {
-  if (!req.user) return res.status(401).json({ error: 'Please log in' });
-  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admins only' });
-  next();
-}
+// What a logged-in user may do is decided by Cerbos policies: see authz.js and server/cerbos/policies.

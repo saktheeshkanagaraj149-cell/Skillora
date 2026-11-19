@@ -1,0 +1,12 @@
+# Cerbos policy decision point (PDP) config. https://docs.cerbos.dev/cerbos/latest/configuration
+# The API asks Cerbos "can this user do X to this resource?" for every protected action.
+server:
+  httpListenAddr: ":3592"
+  grpcListenAddr: ":3593"
+
+storage:
+  driver: disk
+  disk:
+    # docker-compose mounts the policies here; the production image overrides it with --set
+    directory: /policies
+    watchForChanges: true

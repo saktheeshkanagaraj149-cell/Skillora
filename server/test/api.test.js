@@ -6,6 +6,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import { createApp } from '../src/app.js';
 import { normalisePath } from '../src/ai.js';
 import { User, Domain } from '../src/models.js';
+import { cerbosHealthy } from '../src/authz.js';
 
 let mongo, server, base;
 process.env.JWT_SECRET = 'test-secret';
@@ -22,6 +23,9 @@ const call = async (path, { method = 'GET', body, token } = {}) => {
 };
 
 before(async () => {
+  if (!(await cerbosHealthy())) {
+    throw new Error('Cerbos is not running. Start it with: npm run cerbos   (needs Docker Desktop)');
+  }
   mongo = await MongoMemoryServer.create();
   await mongoose.connect(mongo.getUri());
   server = createApp().listen(0);

@@ -5,7 +5,8 @@ import { rateLimit } from 'express-rate-limit';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import { User, Domain, Path, Progress } from './models.js';
-import { signToken, publicUser, optionalAuth, requireAuth, requireAdmin } from './auth.js';
+import { signToken, publicUser, optionalAuth, requireAuth } from './auth.js';
+import { authorize, check, pathResource, cerbosHealthy } from './authz.js';
 import { generatePath } from './ai.js';
 
 export const PASS_MARK = 60; // % needed on a step quiz to complete the step
@@ -52,7 +53,9 @@ export function createApp() {
 
   app.get('/api/health', async (_req, res) => {
     const dbUp = mongoose.connection.readyState === 1;
-    res.status(dbUp ? 200 : 503).json({ ok: dbUp, db: dbUp ? 'up' : 'down' });
+    const authzUp = await cerbosHealthy();
+    const ok = dbUp && authzUp;
+    res.status(ok ? 200 : 503).json({ ok, db: dbUp ? 'up' : 'down', authz: authzUp ? 'up' : 'down' });
   });
 
   // ---------- Auth ----------
@@ -87,7 +90,7 @@ export function createApp() {
     res.json(domains.map((d) => ({ ...d, pathCount: byId[d._id.toString()] || 0 })));
   }));
 
-  app.post('/api/domains', requireAdmin, ah(async (req, res) => {
+  app.post('/api/domains', requireAuth, authorize('domain', 'create'), ah(async (req, res) => {
     const { name, icon, description, category } = req.body || {};
     if (!name) return res.status(400).json({ error: 'Name is required' });
     const slug = slugify(name);
@@ -119,10 +122,11 @@ export function createApp() {
   app.get('/api/paths/:id', ah(async (req, res) => {
     if (!isId(req.params.id)) return res.status(404).json({ error: 'Path not found' });
     const path = await Path.findById(req.params.id).populate('domain', 'name slug icon');
-    const isAdmin = req.user?.role === 'admin';
-    if (!path || (path.status !== 'published' && !isAdmin)) return res.status(404).json({ error: 'Path not found' });
+    if (!path) return res.status(404).json({ error: 'Path not found' });
+    const allowed = await check(req.user, pathResource(path), ['view', 'view_answers']);
+    if (!allowed('view')) return res.status(404).json({ error: 'Path not found' }); // don't reveal that drafts exist
     const progress = req.user ? await Progress.findOne({ user: req.user._id, path: path._id }).lean() : null;
-    res.json({ path: isAdmin ? path.toObject() : learnerView(path), progress });
+    res.json({ path: allowed('view_answers') ? path.toObject() : learnerView(path), progress });
   }));
 
   app.post('/api/paths/:id/steps/:stepId/complete', requireAuth, ah(async (req, res) => {
@@ -131,6 +135,9 @@ export function createApp() {
     const path = await Path.findOne({ _id: id, status: 'published' });
     const step = path?.steps.id(stepId);
     if (!step) return res.status(404).json({ error: 'Step not found' });
+    if (!(await check(req.user, pathResource(path), ['complete_step']))('complete_step')) {
+      return res.status(403).json({ error: 'You do not have permission to do that' });
+    }
 
     let score = 100;
     let results = [];
@@ -177,11 +184,11 @@ export function createApp() {
   }));
 
   // ---------- Admin ----------
-  app.get('/api/admin/paths', requireAdmin, ah(async (_req, res) => {
+  app.get('/api/admin/paths', requireAuth, authorize('path', 'list_all'), ah(async (_req, res) => {
     res.json(await Path.find().select('title level status domain generatedBy updatedAt steps._id').populate('domain', 'name icon slug').sort('-updatedAt').lean());
   }));
 
-  app.post('/api/admin/paths/generate', requireAdmin, ah(async (req, res) => {
+  app.post('/api/admin/paths/generate', requireAuth, authorize('path', 'create'), ah(async (req, res) => {
     const { domainId, topic, level, steps } = req.body || {};
     if (!isId(domainId) || !topic) return res.status(400).json({ error: 'Domain and topic are required' });
     const domain = await Domain.findById(domainId);
@@ -191,8 +198,13 @@ export function createApp() {
     res.status(201).json(path);
   }));
 
-  app.put('/api/admin/paths/:id', requireAdmin, ah(async (req, res) => {
+  app.put('/api/admin/paths/:id', requireAuth, ah(async (req, res) => {
     if (!isId(req.params.id)) return res.status(404).json({ error: 'Path not found' });
+    const existing = await Path.findById(req.params.id).select('status');
+    if (!existing) return res.status(404).json({ error: 'Path not found' });
+    if (!(await check(req.user, pathResource(existing), ['update']))('update')) {
+      return res.status(403).json({ error: 'You do not have permission to do that' });
+    }
     const allowed = ['title', 'description', 'level', 'steps', 'status'];
     const update = Object.fromEntries(Object.entries(req.body || {}).filter(([k]) => allowed.includes(k)));
     const path = await Path.findByIdAndUpdate(req.params.id, update, { new: true, runValidators: true });
@@ -200,8 +212,13 @@ export function createApp() {
     res.json(path);
   }));
 
-  app.delete('/api/admin/paths/:id', requireAdmin, ah(async (req, res) => {
+  app.delete('/api/admin/paths/:id', requireAuth, ah(async (req, res) => {
     if (!isId(req.params.id)) return res.status(404).json({ error: 'Path not found' });
+    const existing = await Path.findById(req.params.id).select('status');
+    if (!existing) return res.status(404).json({ error: 'Path not found' });
+    if (!(await check(req.user, pathResource(existing), ['delete']))('delete')) {
+      return res.status(403).json({ error: 'You do not have permission to do that' });
+    }
     await Path.findByIdAndDelete(req.params.id);
     await Progress.deleteMany({ path: req.params.id });
     res.status(204).end();
@@ -212,6 +229,10 @@ export function createApp() {
   // eslint-disable-next-line no-unused-vars
   app.use((err, _req, res, _next) => {
     if (err.name === 'ValidationError') return res.status(400).json({ error: err.message });
+    if (err.name === 'AuthzUnavailableError') {
+      console.error('[authz] Cerbos unreachable:', err.cause?.message || err.cause);
+      return res.status(503).json({ error: err.message });
+    }
     console.error(err);
     res.status(500).json({ error: err.message?.startsWith('AI') ? err.message : 'Something went wrong' });
   });

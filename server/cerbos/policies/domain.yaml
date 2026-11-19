@@ -1,0 +1,9 @@
+# Who can manage skill domains (Web Development, Photography, ...). Listing domains is public.
+apiVersion: api.cerbos.dev/v1
+resourcePolicy:
+  version: default
+  resource: domain
+  rules:
+    - actions: ["create"]
+      effect: EFFECT_ALLOW
+      roles: ["admin"]

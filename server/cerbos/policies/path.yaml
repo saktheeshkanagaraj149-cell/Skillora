@@ -1,0 +1,28 @@
+# Who can do what with a learning path.
+# Roles come from User.role (learner | tutor | admin); visitors who are not logged in are "guest".
+# resource attr: status ("draft" | "published")
+apiVersion: api.cerbos.dev/v1
+resourcePolicy:
+  version: default
+  resource: path
+  rules:
+    # Anyone, logged in or not, can read a published path (without quiz answers)
+    - actions: ["view"]
+      effect: EFFECT_ALLOW
+      roles: ["guest", "learner", "tutor"]
+      condition:
+        match:
+          expr: request.resource.attr.status == "published"
+
+    # Logged-in users can complete steps (take quizzes) on published paths
+    - actions: ["complete_step"]
+      effect: EFFECT_ALLOW
+      roles: ["learner", "tutor", "admin"]
+      condition:
+        match:
+          expr: request.resource.attr.status == "published"
+
+    # Admins curate: see drafts and quiz answers, list, create, edit, publish and delete paths
+    - actions: ["view", "view_answers", "list_all", "create", "update", "delete"]
+      effect: EFFECT_ALLOW
+      roles: ["admin"]
