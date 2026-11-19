@@ -1,0 +1,55 @@
+# Self-hosted production stack: MongoDB + the Skillora API image (API + Cerbos together).
+# Copy .env.deploy.example to .env.deploy, fill it in, then:
+#   docker compose --env-file .env.deploy -f docker-compose.prod.yml up -d --build
+#
+# No Cerbos port is published: the API reaches it over the container's loopback.
+
+name: skillora-prod
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-skillora}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?set MONGO_PASSWORD in .env.deploy}
+      MONGO_INITDB_DATABASE: skillora
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: skillora-api:local
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 20s
+    ports:
+      - "${HOST_PORT:-5000}:5000"
+    environment:
+      NODE_ENV: production
+      PORT: "5000"
+      # Compose builds the URI. Use a Mongo password with letters, numbers and hyphens only,
+      # or URL-encode it, otherwise the URI will not parse.
+      MONGO_URI: "mongodb://${MONGO_USER:-skillora}:${MONGO_PASSWORD:?set MONGO_PASSWORD in .env.deploy}@mongo:27017/skillora?authSource=admin"
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env.deploy}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:5173}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-flash-lite-latest}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
+      YOUTUBE_LANGUAGE: ${YOUTUBE_LANGUAGE:-en}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@skillora.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongo_data:

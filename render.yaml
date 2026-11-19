@@ -30,4 +30,4 @@ services:
       - key: YOUTUBE_LANGUAGE
         value: en
       - key: GEMINI_MODEL
-        value: gemini-flash-latest
+        value: gemini-flash-lite-latest

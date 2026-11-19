@@ -3,6 +3,7 @@ dist/
 .env
 .env.*
 !.env.example
+!.env.deploy.example
 server/.data/
 *.log
 .DS_Store

@@ -40,11 +40,58 @@ The API checks permissions over localhost. If Cerbos stops, protected routes ans
    | `CLIENT_ORIGIN` | your Vercel URL, no trailing slash (comma-separate several) |
    | `GEMINI_API_KEY` | from https://aistudio.google.com/apikey (needed only for AI course generation) |
    | `YOUTUBE_API_KEY` | Google Cloud → YouTube Data API v3 key (needed only for finding videos) |
-   | `NODE_ENV`, `GEMINI_MODEL`, `YOUTUBE_LANGUAGE` | set by `render.yaml` |
+   | `NODE_ENV`, `GEMINI_MODEL`, `YOUTUBE_LANGUAGE` | set by `render.yaml` (`GEMINI_MODEL` is `gemini-flash-lite-latest`) |
 
    Don't set `CERBOS_URL` or `PORT`: the image and Render provide them.
 4. **Apply**. When it shows **Live**, open `https://<service>.onrender.com/api/health`. It should show
    `{"ok":true,"db":"up","authz":"up"}`.
+
+### Docker image details (also used by self-hosting)
+
+`server/Dockerfile` builds one image containing Node 22 and Cerbos 0.57.0. It:
+
+- installs production dependencies only (`npm ci --omit=dev --omit=optional`);
+- copies policies from `server/cerbos/policies` and excludes `.env*` via `server/.dockerignore`;
+- runs as the unprivileged `node` user;
+- waits for Cerbos to answer `/_cerbos/health` before starting the API via `server/docker-start.mjs`;
+- stops the whole container if either Cerbos or the API exits, so the platform can restart it;
+- exposes a Docker `HEALTHCHECK` on `/api/health` (503 when MongoDB or Cerbos is down).
+
+## 2b. Self-hosted Docker Compose (alternative to Render)
+
+Use this if you want to run the API on your own Docker host instead of Render. It starts MongoDB plus the same
+API+Cerbos image; no separate Cerbos service is needed.
+
+1. Copy the template and fill in real values:
+   ```bash
+   cp .env.deploy.example .env.deploy
+   # edit .env.deploy: MONGO_PASSWORD, JWT_SECRET, ADMIN_PASSWORD, CLIENT_ORIGIN
+   ```
+   `.env.deploy` is gitignored. Use a MongoDB password containing only letters, numbers and hyphens, or URL-encode
+   special characters, because Compose builds the Mongo URI from it.
+2. Start the stack:
+   ```bash
+   docker compose --env-file .env.deploy -f docker-compose.prod.yml up -d --build
+   docker compose --env-file .env.deploy -f docker-compose.prod.yml ps
+   curl http://localhost:5000/api/health   # expect {"ok":true,"db":"up","authz":"up"}
+   ```
+   Change `HOST_PORT` in `.env.deploy` if port 5000 is already taken. Cerbos stays internal to the container.
+3. Create the first admin (once):
+   ```bash
+   docker compose --env-file .env.deploy -f docker-compose.prod.yml run --rm api npm run seed
+   ```
+4. Build courses (no publish until you review them):
+   ```bash
+   docker compose --env-file .env.deploy -f docker-compose.prod.yml run --rm api npm run build:courses
+   ```
+5. Useful commands:
+   ```bash
+   docker compose --env-file .env.deploy -f docker-compose.prod.yml logs -f api
+   docker compose --env-file .env.deploy -f docker-compose.prod.yml restart api
+   docker compose --env-file .env.deploy -f docker-compose.prod.yml down        # keeps Mongo data
+   # docker compose --env-file .env.deploy -f docker-compose.prod.yml down -v  # DELETES Mongo data
+   ```
+   Point your reverse proxy at `${HOST_PORT}`, and set Render's/Vercel's `VITE_API_URL` to that public URL.
 
 ## 3. Website on Vercel
 1. https://vercel.com → **Add New → Project** → import `Skillora`.
