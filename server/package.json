@@ -14,7 +14,8 @@
     "build:courses": "node src/buildCourses.js",
     "cerbos": "docker compose -f ../docker-compose.yml up -d cerbos",
     "cerbos:stop": "docker compose -f ../docker-compose.yml stop cerbos",
-    "test:policies": "docker compose -f ../docker-compose.yml run --rm cerbos compile /policies"
+    "test:policies": "docker compose -f ../docker-compose.yml run --rm cerbos compile /policies",
+    "reset-admin": "node src/resetAdmin.js"
   },
   "dependencies": {
     "@cerbos/http": "^0.30.3",
