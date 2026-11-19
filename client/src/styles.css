@@ -107,6 +107,9 @@ img { max-width: 100%; }
 .nav nav a.active { background: var(--leaf-soft); color: var(--leaf-strong); }
 .nav nav a.btn { color: #fff; }
 
+/* Shown when the API is unreachable; the saved session is kept and retried. */
+.server-banner { background: var(--amber-soft); color: #7c2d12; border-bottom: 1px solid var(--amber); padding: 0.6rem 16px; text-align: center; font-size: 0.9rem; font-weight: 600; }
+
 /* ============ buttons, pills ============ */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;

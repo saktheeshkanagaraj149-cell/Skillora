@@ -7,7 +7,7 @@
     "seed": "npm run seed --prefix server",
     "dev:server": "npm run dev --prefix server",
     "dev:client": "npm run dev --prefix client",
-    "test": "npm test --prefix server",
+    "test": "npm test --prefix server && npm test --prefix client",
     "build": "npm run build --prefix client",
     "generate:starters": "npm run generate:starters --prefix server",
     "build:courses": "npm run build:courses --prefix server --"

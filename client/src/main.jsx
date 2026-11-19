@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Link, NavLink } from 'react-router-dom';
-import { AuthProvider, RequireAuth, useAuth } from './auth.jsx';
+import { AuthProvider, RequireAuth, useAuth, SERVER_DOWN_MESSAGE } from './auth.jsx';
 import Home from './pages/Home.jsx';
 import DomainPage from './pages/DomainPage.jsx';
 import PathPage from './pages/PathPage.jsx';
@@ -13,7 +13,7 @@ import { Compass, LogOut, Sprout } from './icons';
 import './styles.css';
 
 function Nav() {
-  const { user, logout } = useAuth();
+  const { user, logout, serverDown } = useAuth();
   return (
     <header className="nav">
       <div className="nav-inner">
@@ -22,7 +22,9 @@ function Nav() {
           <NavLink to="/" end>Explore</NavLink>
           {user && <NavLink to="/dashboard">My learning</NavLink>}
           {user?.role === 'admin' && <NavLink to="/admin">Admin</NavLink>}
-          {user ? (
+          {serverDown ? (
+            <span className="muted small">Reconnecting…</span>
+          ) : user ? (
             <button className="link with-icon" onClick={logout}><LogOut size={16} /> Log out</button>
           ) : (
             <>
@@ -50,10 +52,17 @@ function Footer() {
   );
 }
 
+function ServerBanner() {
+  const { serverDown } = useAuth();
+  if (!serverDown) return null;
+  return <div className="server-banner" role="alert">{SERVER_DOWN_MESSAGE} Your session is saved.</div>;
+}
+
 function App() {
   return (
     <>
       <Nav />
+      <ServerBanner />
       <main className="container">
         <Routes>
           <Route path="/" element={<Home />} />
