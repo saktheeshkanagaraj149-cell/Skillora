@@ -1,0 +1,16 @@
+# Who can manage and verify certificates.
+# Roles come from User.role (learner | tutor | admin); visitors who are not logged in are "guest".
+apiVersion: api.cerbos.dev/v1
+resourcePolicy:
+  version: default
+  resource: certificate
+  rules:
+    # Logged-in learners can claim and list their own certificates
+    - actions: ["claim", "list_mine"]
+      effect: EFFECT_ALLOW
+      roles: ["learner", "tutor", "admin"]
+
+    # Anyone can verify a certificate by code (public verification page)
+    - actions: ["verify"]
+      effect: EFFECT_ALLOW
+      roles: ["guest", "learner", "tutor", "admin"]

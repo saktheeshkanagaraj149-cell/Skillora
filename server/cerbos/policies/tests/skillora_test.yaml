@@ -10,6 +10,7 @@ resources:
   published_path: { kind: path, id: p1, attr: { status: published } }
   draft_path: { kind: path, id: p2, attr: { status: draft } }
   domain: { kind: domain, id: new, attr: {} }
+  certificate: { kind: certificate, id: c1, attr: {} }
 
 tests:
   - name: Published paths are public, only admins see answers or manage them
@@ -99,3 +100,60 @@ tests:
       - principal: admin
         resource: domain
         actions: { create: EFFECT_ALLOW }
+
+  - name: Only admins can enrich paths
+    input:
+      principals: [guest, learner, tutor, admin]
+      resources: [published_path]
+      actions: [enrich]
+    expected:
+      - principal: guest
+        resource: published_path
+        actions: { enrich: EFFECT_DENY }
+      - principal: learner
+        resource: published_path
+        actions: { enrich: EFFECT_DENY }
+      - principal: tutor
+        resource: published_path
+        actions: { enrich: EFFECT_DENY }
+      - principal: admin
+        resource: published_path
+        actions: { enrich: EFFECT_ALLOW }
+
+  - name: Published paths allow exams and certificate claims for logged-in users
+    input:
+      principals: [guest, learner, tutor, admin]
+      resources: [published_path]
+      actions: [take_exam, claim_certificate]
+    expected:
+      - principal: guest
+        resource: published_path
+        actions: { take_exam: EFFECT_DENY, claim_certificate: EFFECT_DENY }
+      - principal: learner
+        resource: published_path
+        actions: { take_exam: EFFECT_ALLOW, claim_certificate: EFFECT_ALLOW }
+      - principal: tutor
+        resource: published_path
+        actions: { take_exam: EFFECT_ALLOW, claim_certificate: EFFECT_ALLOW }
+      - principal: admin
+        resource: published_path
+        actions: { take_exam: EFFECT_ALLOW, claim_certificate: EFFECT_ALLOW }
+
+  - name: Certificates can be claimed by logged-in users and verified by anyone
+    input:
+      principals: [guest, learner, tutor, admin]
+      resources: [certificate]
+      actions: [claim, list_mine, verify]
+    expected:
+      - principal: guest
+        resource: certificate
+        actions: { claim: EFFECT_DENY, list_mine: EFFECT_DENY, verify: EFFECT_ALLOW }
+      - principal: learner
+        resource: certificate
+        actions: { claim: EFFECT_ALLOW, list_mine: EFFECT_ALLOW, verify: EFFECT_ALLOW }
+      - principal: tutor
+        resource: certificate
+        actions: { claim: EFFECT_ALLOW, list_mine: EFFECT_ALLOW, verify: EFFECT_ALLOW }
+      - principal: admin
+        resource: certificate
+        actions: { claim: EFFECT_ALLOW, list_mine: EFFECT_ALLOW, verify: EFFECT_ALLOW }
