@@ -22,7 +22,7 @@ resourcePolicy:
         match:
           expr: request.resource.attr.status == "published"
 
-    # Admins curate: see drafts and quiz answers, list, create, edit, publish and delete paths
-    - actions: ["view", "view_answers", "list_all", "create", "update", "delete"]
+    # Admins curate: see drafts and quiz answers, list, create, edit, publish, enrich and delete paths
+    - actions: ["view", "view_answers", "list_all", "create", "update", "delete", "enrich"]
       effect: EFFECT_ALLOW
       roles: ["admin"]

@@ -194,7 +194,6 @@ export function createApp() {
   // ---------- Admin ----------
   app.get('/api/admin/paths', requireAuth, authorize('path', 'list_all'), ah(async (_req, res) => {
     res.json(await Path.find().select('title level status domain generatedBy updatedAt steps._id steps.module steps.video.youtubeId finalExam.question').populate('domain', 'name icon slug').sort('-updatedAt').lean());
-  }));
 
   app.post('/api/admin/paths/generate', requireAuth, authorize('path', 'create'), ah(async (req, res) => {
     const { domainId, topic, level, steps } = req.body || {};
