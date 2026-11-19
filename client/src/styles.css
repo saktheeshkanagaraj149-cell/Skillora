@@ -247,10 +247,10 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--l
 .ring { --p: 0; width: 120px; height: 120px; border-radius: 50%; margin: 0.4rem auto 0.8rem; display: grid; place-items: center;
   background: conic-gradient(var(--leaf) calc(var(--p) * 1%), var(--surface-2) 0); }
 .ring > div { width: 92px; height: 92px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; }
-.side-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.8rem; }
-.side-facts div { background: var(--surface-2); border-radius: var(--radius-sm); padding: 0.6rem; text-align: center; }
+.side-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; margin-top: 0.8rem; }
+.side-facts div { background: var(--surface-2); border-radius: var(--radius-sm); padding: 0.6rem; text-align: center; min-width: 0; }
 .side-facts b { display: block; font-family: var(--font-display); font-size: 1.2rem; }
-.side-facts span { font-size: 0.78rem; color: var(--muted); }
+.side-facts span { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.25rem; font-size: 0.78rem; line-height: 1.3; color: var(--muted); text-align: center; overflow-wrap: anywhere; }
 
 .progress { height: 8px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin: 0.6rem 0 0.2rem; }
 .progress > div { height: 100%; background: linear-gradient(90deg, var(--leaf), #86efac); border-radius: 999px; transition: width 0.4s; }
@@ -399,7 +399,6 @@ svg.icon { flex-shrink: 0; }
 .cert-banner .medal { color: #fcd34d; display: inline-flex; }
 .cert-banner .small { color: #c9ddd2; }
 .side-cert { display: flex; gap: 0.45rem; align-items: center; margin: 0.9rem 0 0; padding: 0.55rem 0.7rem; border-radius: var(--radius-sm); background: var(--amber-soft); color: var(--amber-fg); font-weight: 600; }
-.side-facts span { display: inline-flex; align-items: center; gap: 0.25rem; justify-content: center; }
 .cert-card { display: flex; flex-direction: column; gap: 0.5rem; background: linear-gradient(160deg, var(--leaf-soft), var(--surface) 70%); }
 .cert-card .with-icon svg { color: var(--leaf-strong); }
 
