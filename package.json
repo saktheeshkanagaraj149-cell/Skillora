@@ -8,6 +8,7 @@
     "dev:client": "npm run dev --prefix client",
     "test": "npm test --prefix server",
     "build": "npm run build --prefix client",
-    "generate:starters": "npm run generate:starters --prefix server"
+    "generate:starters": "npm run generate:starters --prefix server",
+    "build:courses": "npm run build:courses --prefix server --"
   }
 }

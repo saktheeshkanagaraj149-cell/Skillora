@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { catHue } from '../theme.js';
 import { DomainIcon } from '../icons.jsx';
-import { ArrowLeft, Award, BookOpen, Clock, Frown, Sprout } from '../icons';
+import { ArrowLeft, Award, BookOpen, Clock, Frown, Modules, Sprout, Video } from '../icons';
 
 export default function DomainPage() {
   const { slug } = useParams();
@@ -35,13 +35,13 @@ export default function DomainPage() {
       {paths.length === 0 ? (
         <div className="card empty">
           <Sprout className="big-icon" size={44} aria-hidden />
-          <h3>Paths are being prepared</h3>
+          <h3>Courses are being prepared</h3>
           <p className="muted">Our team is curating the best free resources for {domain.name}. Check back soon!</p>
           <Link to="/" className="btn secondary small">Explore other skills</Link>
         </div>
       ) : (
         <>
-          <h2 style={{ marginTop: 0 }}>Learning paths</h2>
+          <h2 style={{ marginTop: 0 }}>Courses</h2>
           <div className="grid">
             {paths.map((p) => (
               <Link key={p._id} to={`/p/${p._id}`} className="card path-card">
@@ -49,9 +49,11 @@ export default function DomainPage() {
                 <h3>{p.title}</h3>
                 <p className="muted small">{p.description}</p>
                 <div className="facts">
-                  <span><BookOpen size={15} /> {p.stepCount} steps</span>
-                  <span><Clock size={15} /> ~{p.hours} hours</span>
-                  <span><Award size={15} /> Badge</span>
+                  {p.moduleCount > 0 && <span><Modules size={15} /> {p.moduleCount} modules</span>}
+                  <span><BookOpen size={15} /> {p.stepCount} lessons</span>
+                  {p.videoCount > 0 && <span><Video size={15} /> {p.videoCount} videos</span>}
+                  <span><Clock size={15} /> ~{p.hours}h</span>
+                  <span><Award size={15} /> Certificate</span>
                 </div>
               </Link>
             ))}

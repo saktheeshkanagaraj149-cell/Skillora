@@ -25,5 +25,7 @@ services:
         sync: false # e.g. https://skillora.vercel.app (comma-separate several)
       - key: GEMINI_API_KEY
         sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
       - key: GEMINI_MODEL
         value: gemini-flash-latest

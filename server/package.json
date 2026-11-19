@@ -10,7 +10,8 @@
     "seed": "node src/seed.js",
     "test": "node --test \"test/**/*.test.js\"",
     "generate:starters": "node src/generateStarters.js",
-    "copy-data": "node src/copyData.js"
+    "copy-data": "node src/copyData.js",
+    "build:courses": "node src/buildCourses.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -8,6 +8,7 @@ import PathPage from './pages/PathPage.jsx';
 import { Login, Register } from './pages/AuthPages.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Admin from './pages/Admin.jsx';
+import CertificatePage from './pages/CertificatePage.jsx';
 import { Compass, LogOut, Sprout } from './icons';
 import './styles.css';
 
@@ -41,7 +42,7 @@ function Footer() {
       <div className="footer-inner">
         <div>
           <span className="brand"><span className="brand-mark"><Sprout size={18} /></span> Skillora</span>
-          <p>Free, step-by-step learning paths for every skill: engineering, tech, business, arts, languages and life skills.</p>
+          <p>Free courses for every skill, with video lessons, quizzes and a verifiable certificate: engineering, tech, business, arts, languages and life skills.</p>
         </div>
         <div className="small muted">© {new Date().getFullYear()} Skillora · Made in India for learners everywhere</div>
       </div>
@@ -58,6 +59,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/d/:slug" element={<DomainPage />} />
           <Route path="/p/:id" element={<PathPage />} />
+          <Route path="/certificate/:code" element={<CertificatePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />

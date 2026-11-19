@@ -3,15 +3,17 @@ import { Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { useAuth } from '../auth.jsx';
 import { DomainIcon } from '../icons.jsx';
-import { ArrowRight, Award, Compass, Plus } from '../icons';
+import { ArrowRight, Award, Compass, Plus, Verified } from '../icons';
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [items, setItems] = useState(null);
+  const [certs, setCerts] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
     api('/me/progress').then(setItems).catch((e) => setError(e.message));
+    api('/me/certificates').then(setCerts).catch(() => {});
   }, []);
 
   const badges = (items || []).filter((i) => i.completedAt);
@@ -32,6 +34,7 @@ export default function Dashboard() {
         <div className="stat"><b>{items ? active.length : '·'}</b><span>paths in progress</span></div>
         <div className="stat"><b>{items ? stepsDone : '·'}</b><span>steps completed</span></div>
         <div className="stat"><b>{items ? badges.length : '·'}</b><span>badges earned</span></div>
+        <div className="stat"><b>{items ? certs.length : '·'}</b><span>certificates</span></div>
       </div>
 
       {error && <p className="error">{error}</p>}
@@ -57,10 +60,28 @@ export default function Dashboard() {
                   <span className="small muted with-icon"><DomainIcon slug={i.domain?.slug} size={15} /> {i.domain?.name}</span>
                   <h3>{i.title}</h3>
                   <div className="progress"><div style={{ width: `${pct}%` }} /></div>
-                  <div className="row-between small muted"><span>{i.done}/{i.total} steps</span><strong style={{ color: 'var(--leaf-strong)' }}>{pct}% <ArrowRight size={14} /></strong></div>
+                  <div className="row-between small muted"><span>{i.done}/{i.total} lessons</span><strong style={{ color: 'var(--leaf-strong)' }}>{pct}% <ArrowRight size={14} /></strong></div>
                 </Link>
               );
             })}
+          </div>
+        </>
+      )}
+
+      {certs.length > 0 && (
+        <>
+          <h2>Your certificates</h2>
+          <div className="grid">
+            {certs.map((c) => (
+              <Link key={c.code} to={`/certificate/${c.code}`} className="card cert-card">
+                <span className="small muted with-icon"><Verified size={15} /> {c.code}</span>
+                <h3>{c.courseTitle}</h3>
+                <p className="small muted" style={{ margin: 0 }}>
+                  {c.domainName} · {new Date(c.issuedAt).toLocaleDateString()}{c.score != null && <> · exam {c.score}%</>}
+                </p>
+                <span className="small" style={{ color: 'var(--leaf-strong)', fontWeight: 600 }}>View & download <ArrowRight size={14} /></span>
+              </Link>
+            ))}
           </div>
         </>
       )}

@@ -7,16 +7,20 @@ import mongoose from 'mongoose';
 import { User, Domain, Path, Progress } from './models.js';
 import { signToken, publicUser, optionalAuth, requireAuth, requireAdmin } from './auth.js';
 import { generatePath } from './ai.js';
+import { registerCourseRoutes } from './courses.js';
 
 export const PASS_MARK = 60; // % needed on a step quiz to complete the step
 
 const isId = (id) => mongoose.isValidObjectId(id);
 const slugify = (s) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-/** Removes quiz answers so learners can't read them from the API. */
+const hideAnswers = (qs = []) => qs.map(({ question, options }) => ({ question, options }));
+
+/** Removes quiz and exam answers so learners can't read them from the API. */
 function learnerView(path) {
   const p = path.toObject();
-  p.steps = p.steps.map((s) => ({ ...s, quiz: s.quiz.map(({ question, options }) => ({ question, options })) }));
+  p.steps = p.steps.map((s) => ({ ...s, quiz: hideAnswers(s.quiz) }));
+  p.finalExam = hideAnswers(p.finalExam);
   return p;
 }
 
@@ -99,7 +103,7 @@ export function createApp() {
     const domain = await Domain.findOne({ slug: req.params.slug }).lean();
     if (!domain) return res.status(404).json({ error: 'Domain not found' });
     const paths = await Path.find({ domain: domain._id, status: 'published' })
-      .select('title level description steps.estimatedHours steps.title')
+      .select('title level description steps.estimatedHours steps.title steps.module steps.video.youtubeId finalExam.question')
       .sort('level title')
       .lean();
     res.json({
@@ -111,6 +115,10 @@ export function createApp() {
         description: p.description,
         stepCount: p.steps.length,
         hours: p.steps.reduce((h, s) => h + (s.estimatedHours || 0), 0),
+        moduleCount: new Set(p.steps.map((s) => s.module).filter(Boolean)).size,
+        videoCount: p.steps.filter((s) => s.video?.youtubeId).length,
+        certificate: true, // every course awards one: after the final exam, or on completion when there is none
+        examQuestions: (p.finalExam || []).length,
       })),
     });
   }));
@@ -178,7 +186,7 @@ export function createApp() {
 
   // ---------- Admin ----------
   app.get('/api/admin/paths', requireAdmin, ah(async (_req, res) => {
-    res.json(await Path.find().select('title level status domain generatedBy updatedAt steps._id').populate('domain', 'name icon slug').sort('-updatedAt').lean());
+    res.json(await Path.find().select('title level status domain generatedBy updatedAt steps._id steps.module steps.video.youtubeId finalExam.question').populate('domain', 'name icon slug').sort('-updatedAt').lean());
   }));
 
   app.post('/api/admin/paths/generate', requireAdmin, ah(async (req, res) => {
@@ -193,7 +201,7 @@ export function createApp() {
 
   app.put('/api/admin/paths/:id', requireAdmin, ah(async (req, res) => {
     if (!isId(req.params.id)) return res.status(404).json({ error: 'Path not found' });
-    const allowed = ['title', 'description', 'level', 'steps', 'status'];
+    const allowed = ['title', 'description', 'level', 'steps', 'status', 'finalExam'];
     const update = Object.fromEntries(Object.entries(req.body || {}).filter(([k]) => allowed.includes(k)));
     const path = await Path.findByIdAndUpdate(req.params.id, update, { new: true, runValidators: true });
     if (!path) return res.status(404).json({ error: 'Path not found' });
@@ -206,6 +214,8 @@ export function createApp() {
     await Progress.deleteMany({ path: req.params.id });
     res.status(204).end();
   }));
+
+  registerCourseRoutes(app);
 
   // ---------- Errors ----------
   app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));

@@ -32,6 +32,8 @@ export async function connectDB() {
 }
 
 export async function disconnectDB() {
+  // The local dev mongod is killed on stop (hard on Windows): flush to disk first or recent writes are lost.
+  if (memoryServer) await mongoose.connection.db.admin().command({ fsync: 1 }).catch(() => {});
   await mongoose.disconnect();
   if (memoryServer) await memoryServer.stop({ doCleanup: false });
 }

@@ -47,6 +47,14 @@ export const Hammer = wrap(I.Hammer);
 export const Link2 = wrap(I.Link);
 export const PartyPopper = wrap(I.Trophy);
 export const Play = wrap(I.Play);
+export const Lock = wrap(I.Lock);
+export const Printer = wrap(I.Printer);
+export const Copy = wrap(I.Copy);
+export const Share = wrap(I.ShareAndroid);
+export const Verified = wrap(I.BadgeCheck);
+export const Video = wrap(I.MediaVideo);
+export const Modules = wrap(I.BookStack);
+export const Exam = wrap(I.ClipboardCheck);
 
 // ---- Domain icons, per domain slug (domains created later by admins fall back to their category icon) ----
 const DOMAIN_ICONS = {

@@ -2,7 +2,7 @@
 
 **Learn any skill. Free. In the right order.**
 
-Free content for any skill is already online, but it is scattered, unordered and unverified, and paid platforms are expensive in most of the world. Skillora turns the best free videos and articles into a **clear step-by-step learning path** for any domain (web development, electronics, photography, spoken English and more). Each step ends with a quick quiz so learners know they actually learned it.
+Free content for any skill is already online, but it is scattered, unordered and unverified, and paid platforms are expensive in most of the world. Skillora turns the best free videos and articles into a **clear step-by-step learning path** for any domain (web development, electronics, photography, spoken English and more). Each course is split into modules and lessons. Every lesson has an embedded video and a quick quiz, and a final exam awards a **verifiable certificate**.
 
 > Core learning stays **free forever**. Later, affordable help from verified tutors, priced by country.
 
@@ -12,12 +12,12 @@ Free content for any skill is already online, but it is scattered, unordered and
 
 | Stage | What learners get | Status |
 |---|---|---|
-| **1. Paths (MVP)** | Domains → AI-drafted, admin-curated paths → steps with free resources + quiz → progress + badges | ✅ Built |
+| **1. Courses (MVP)** | Domains → AI-drafted, admin-curated courses → modules → lessons (YouTube video + free resources + quiz) → final exam → certificate | ✅ Built |
 | **2. Community** | Upvote/report resources, doubts per step, study buddies | Planned |
 | **3. Tutors** | Verified tutors (often top learners) offer paid live sessions and reviews. Prices adjust by country (purchasing power parity); Skillora takes a small commission | Planned |
 
 ### Portals
-- **Learner:** browse domains, follow paths, take quizzes, track progress, earn badges *(stage 3: book tutors)*
+- **Learner:** browse domains, follow paths, watch lesson videos, take quizzes and the final exam, track progress, earn badges and certificates *(stage 3: book tutors)*
 - **Admin:** add domains, generate paths with AI, edit and curate, publish *(stage 3: approve tutors)*
 - **Tutor** *(stage 3)*: apply, prove the skill (domain quiz, portfolio, admin approval), set price and availability, get rated
 
@@ -38,6 +38,7 @@ npm run install:all                     # install server + client
 cp server/.env.example server/.env      # then set JWT_SECRET and ADMIN_PASSWORD
 npm run seed                            # 23 domains in 7 categories, admin account, sample "Photography Basics" path
 npm run generate:starters               # AI drafts a beginner path for every domain without one (re-run to retry failures)
+npm run build:courses                   # full course (modules, videos, exam) for every skill, see docs/COURSES.md
 npm run dev:server                      # API → http://localhost:5000
 npm run dev:client                      # app → http://localhost:5173  (second terminal)
 npm test                                # API tests
@@ -69,5 +70,9 @@ server/test/    API tests (node:test)
 | GET | `/api/paths/:id` (quiz answers hidden from learners) | anyone |
 | POST | `/api/paths/:id/steps/:stepId/complete` `{ answers: [i…] }` (60% to pass) | learner |
 | GET | `/api/me/progress` | learner |
+| POST | `/api/paths/:id/exam` `{ answers: [i…] }` (70% to pass, all lessons done first) | learner |
+| POST | `/api/paths/:id/certificate` (issue/fetch mine) · GET `/api/me/certificates` | learner |
+| GET | `/api/certificates/:code` (public verification) | anyone |
+| POST | `/api/admin/paths/:id/enrich` (AI modules + exam, YouTube videos) | admin |
 | POST | `/api/domains` | admin |
 | GET / POST / PUT / DELETE | `/api/admin/paths`, `/api/admin/paths/generate`, `/api/admin/paths/:id` | admin |
