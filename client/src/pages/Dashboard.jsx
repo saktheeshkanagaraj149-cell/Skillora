@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { useAuth } from '../auth.jsx';
 import { DomainIcon } from '../icons.jsx';
-import { ArrowRight, Award, Compass, Plus } from 'lucide-react';
+import { ArrowRight, Award, Compass, Plus } from '../icons';
 
 export default function Dashboard() {
   const { user } = useAuth();

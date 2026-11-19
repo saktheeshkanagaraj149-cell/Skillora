@@ -4,7 +4,7 @@ import { api } from '../api.js';
 import { useAuth } from '../auth.jsx';
 import { CATEGORY_ORDER, catHue } from '../theme.js';
 import { CategoryIcon, DomainIcon } from '../icons.jsx';
-import { ArrowRight, Search, SearchX, Sprout } from 'lucide-react';
+import { ArrowRight, Search, SearchX, Sprout } from '../icons';
 
 const SUGGESTIONS = ['Python', 'Arduino', 'Photography', 'Spoken English', 'Aptitude'];
 

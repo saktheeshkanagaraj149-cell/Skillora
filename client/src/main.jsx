@@ -8,7 +8,7 @@ import PathPage from './pages/PathPage.jsx';
 import { Login, Register } from './pages/AuthPages.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Admin from './pages/Admin.jsx';
-import { Compass, LogOut, Sprout } from 'lucide-react';
+import { Compass, LogOut, Sprout } from './icons';
 import './styles.css';
 
 function Nav() {

@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { catHue } from '../theme.js';
 import { DomainIcon } from '../icons.jsx';
-import { ArrowLeft, Award, BookOpen, Clock, Frown, Sprout } from 'lucide-react';
+import { ArrowLeft, Award, BookOpen, Clock, Frown, Sprout } from '../icons';
 
 export default function DomainPage() {
   const { slug } = useParams();

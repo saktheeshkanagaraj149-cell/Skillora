@@ -344,8 +344,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--l
   .how .step-no { background: #12321f; }
 }
 
-/* ============ icons (lucide) ============ */
-svg.lucide { flex-shrink: 0; }
+/* ============ icons (iconoir) ============ */
+svg.icon { flex-shrink: 0; }
 .icon-tile { color: var(--hue-fg, var(--leaf-strong)); }
 .banner .icon-tile { color: var(--hue-fg); }
 .with-icon, .facts span, .back, .result, .badge-banner .medal { display: inline-flex; align-items: center; gap: 0.4rem; }

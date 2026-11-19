@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { useAuth } from '../auth.jsx';
 import { DomainIcon } from '../icons.jsx';
-import { ArrowLeft, Award, Brain, Check, ChevronDown, ExternalLink, FileText, Frown, GraduationCap, Hammer, Link2, PartyPopper, Play, Search } from 'lucide-react';
+import { ArrowLeft, Award, Brain, Check, ChevronDown, ExternalLink, FileText, Frown, GraduationCap, Hammer, Link2, PartyPopper, Play, Search } from '../icons';
 
 const RESOURCE_ICON = { video: Play, article: FileText, course: GraduationCap, practice: Hammer, search: Search };
 function ResourceIcon({ r }) {

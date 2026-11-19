@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
 import { DomainIcon } from '../icons.jsx';
-import { Plus, Sparkles } from 'lucide-react';
+import { Plus, Sparkles } from '../icons';
 
 const resourcesToText = (rs) => rs.map((r) => `${r.title} | ${r.url}`).join('\n');
 const textToResources = (t) =>

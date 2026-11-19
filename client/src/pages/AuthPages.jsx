@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth.jsx';
-import { Award, Brain, Footprints, HeartHandshake, Sprout } from 'lucide-react';
+import { Award, Brain, Footprints, HeartHandshake, Sprout } from '../icons';
 
 function AuthShell({ title, children }) {
   return (
