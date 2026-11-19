@@ -41,7 +41,7 @@ async function search(query, duration) {
   const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`, { signal: AbortSignal.timeout(20_000) });
   if (!res.ok) {
     const body = await res.text();
-    if (res.status === 403 && /quota/i.test(body)) throw new QuotaError('YouTube daily quota used up, run again tomorrow');
+    if ((res.status === 403 || res.status === 429) && /quota/i.test(body)) throw new QuotaError('YouTube daily quota used up, run again tomorrow');
     throw new Error(`YouTube ${res.status}: ${body.slice(0, 200)}`);
   }
   const data = await res.json();
