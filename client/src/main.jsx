@@ -55,7 +55,11 @@ function Footer() {
 function ServerBanner() {
   const { serverDown } = useAuth();
   if (!serverDown) return null;
-  return <div className="server-banner" role="alert">{SERVER_DOWN_MESSAGE} Your session is saved.</div>;
+  return (
+    <div className="server-banner" role="status" aria-live="polite">
+      <strong>Reconnecting to Skillora…</strong> {SERVER_DOWN_MESSAGE} On free hosting this can take up to a minute while the server wakes up. Your session stays saved and we’ll retry automatically.
+    </div>
+  );
 }
 
 function App() {

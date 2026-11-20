@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { useAuth } from '../auth.jsx';
+import { catHue } from '../theme.js';
 import { DomainIcon } from '../icons.jsx';
 import {
   ArrowLeft, ArrowRight, Award, Brain, Check, ChevronDown, Clock, Exam, ExternalLink, FileText, Frown, GraduationCap, Hammer,
@@ -263,7 +264,7 @@ export default function PathPage() {
   };
 
   return (
-    <>
+    <div className={`hue-${catHue(path.domain?.category)}`}>
       <Link to={`/d/${path.domain.slug}`} className="back"><ArrowLeft size={16} /> <DomainIcon slug={path.domain.slug} size={16} /> {path.domain.name}</Link>
       <div className="path-layout" style={{ marginTop: '0.8rem' }}>
         <div>
@@ -390,6 +391,6 @@ export default function PathPage() {
           </div>
         </aside>
       </div>
-    </>
+    </div>
   );
 }
