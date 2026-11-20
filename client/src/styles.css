@@ -186,7 +186,7 @@ a.domain-card:hover .arrow { transform: translateX(4px); }
 .hero h1 em { font-style: normal; color: #86efac; }
 .hero p.lead { font-size: clamp(1rem, 2vw, 1.15rem); max-width: 54ch; color: #c9ddd2; margin: 0 0 1.6rem; }
 .hero-search { display: flex; gap: 0.5rem; max-width: 560px; background: #fff; border-radius: 999px; padding: 0.35rem 0.35rem 0.35rem 1.1rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25); }
-.hero-search input { border: 0; background: transparent; color: #13201b; font-size: 1rem; padding: 0.5rem 0; outline: none; }
+.hero-search input { flex: 1; min-width: 0; width: auto; border: 0; background: transparent; color: #13201b; font-size: 1rem; padding: 0.5rem 0; outline: none; }
 .hero-search input::placeholder { color: #6b7a73; }
 .hero-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; font-size: 0.85rem; color: #c9ddd2; align-items: center; }
 .hero-tags button { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 999px; padding: 0.25rem 0.75rem; cursor: pointer; font: inherit; }
