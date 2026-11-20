@@ -84,12 +84,12 @@ img { max-width: 100%; }
 .muted { color: var(--muted); }
 .small { font-size: 0.86rem; }
 .center { text-align: center; }
-.grow { flex: 1; }
+.grow { flex: 1; min-width: 0; }
 .error { color: var(--danger); }
 .success { color: var(--leaf-strong); font-weight: 600; }
 .row { display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: end; }
 .row-between { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.back { display: inline-flex; gap: 0.3rem; color: var(--muted); font-size: 0.9rem; font-weight: 500; }
+.back { display: inline-flex; gap: 0.3rem; color: var(--muted); font-size: 0.9rem; font-weight: 500; max-width: 100%; }
 
 /* ============ nav ============ */
 .nav {
@@ -233,12 +233,14 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--l
   border: 1px solid color-mix(in srgb, var(--hue-fg) 18%, transparent);
 }
 .banner .icon-tile { width: 72px; height: 72px; font-size: 2.3rem; border-radius: 20px; background: var(--surface); box-shadow: var(--shadow); }
-.banner h1 { margin: 0.2rem 0; }
-.banner p { margin: 0; color: var(--muted); }
+.banner h1 { margin: 0.2rem 0; overflow-wrap: anywhere; }
+.banner p { margin: 0; color: var(--muted); overflow-wrap: anywhere; }
 .banner .kicker { color: var(--hue-fg); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
-.path-card { display: flex; flex-direction: column; gap: 0.5rem; }
+.path-card { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
+.path-card h3, .path-card p { overflow-wrap: anywhere; }
 .path-card p { margin: 0; flex: 1; }
-.path-card .facts { display: flex; gap: 1rem; color: var(--muted); font-size: 0.85rem; padding-top: 0.6rem; border-top: 1px dashed var(--border); }
+.path-card .facts { display: flex; flex-wrap: wrap; gap: 0.45rem 0.9rem; color: var(--muted); font-size: 0.85rem; padding-top: 0.6rem; border-top: 1px dashed var(--border); }
+.path-card .facts span { white-space: nowrap; }
 
 /* ============ path page ============ */
 .path-layout { display: grid; grid-template-columns: 1fr 300px; gap: 2rem; align-items: start; }

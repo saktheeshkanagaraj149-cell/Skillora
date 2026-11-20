@@ -94,10 +94,13 @@ API+Cerbos image; no separate Cerbos service is needed.
    Point your reverse proxy at `${HOST_PORT}`, and set Render's/Vercel's `VITE_API_URL` to that public URL.
 
 ## 3. Website on Vercel
+Repo-side Vercel config is already included: `client/vercel.json` sets the Vite build (`npm run build` → `dist`), SPA rewrites for client routes (`/d/:slug`, `/p/:id`, `/certificate/:id`, etc.), and long-cache headers for hashed assets.
+
 1. https://vercel.com → **Add New → Project** → import `Skillora`.
-2. **Root Directory: `client`** (Vite is detected from `vercel.json`).
-3. Environment variable: `VITE_API_URL` = `https://<service>.onrender.com/api`
-4. **Deploy**, then put the Vercel URL in Render's `CLIENT_ORIGIN` (Render redeploys automatically).
+2. Set **Root Directory** to `client`.
+3. Add environment variable `VITE_API_URL` = `https://<service>.onrender.com/api` (for Production, and Preview if you want previews to hit that API). Vite embeds `VITE_*` values at build time, so redeploy after changing it.
+4. **Deploy**. Open the Vercel URL and confirm deep links like `/d/civil-engineering` load correctly (not a 404).
+5. Put the final Vercel site URL (no trailing slash) in Render `CLIENT_ORIGIN` so API/CORS allows it (Render redeploys automatically). If you use Vercel preview URLs, add them to `CLIENT_ORIGIN` as a comma-separated list or expect CORS to block previews.
 
 ## 4. Fill the courses (once, from a laptop with the real `server/.env`)
 ```bash
